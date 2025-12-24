@@ -1,0 +1,39 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  become: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install containerd and runc
+  package:
+    name:
+      - containerd
+      - runc
+    state: present
+  become: yes
+  when: ansible_os_family == "Debian"
+
+- name: Write containerd configuration file
+  copy:
+    src: config.toml
+    dest: /etc/containerd/config.toml
+  become: yes
+  when: ansible_os_family == "Debian"
+
+- name: Enable and start containerd service
+  systemd:
+    name: containerd
+    enabled: yes
+    state: started
+  become: yes
+  when: ansible_os_family == "Debian"
+
+- name: Use Systemd cgroup driver for containerd
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^            SystemdCgroup = false'
+    line: '            SystemdCgroup = true'
+  become: yes
+  when: ansible_os_family == "Debian"

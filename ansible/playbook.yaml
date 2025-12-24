@@ -1,0 +1,30 @@
+---
+- name: Setup Kubelet
+  hosts:
+    - master
+  become: yes
+  roles:
+    - kubelet
+  tags:
+    - k8s
+    - kubelet
+
+- name: Setup Containerd
+  hosts:
+    - master
+  become: yes
+  roles:
+    - containerd
+  tags:
+    - k8s
+    - containerd
+
+- name: Setup Kata Runtime
+  hosts:
+    - master
+  become: yes
+  roles:
+    - kata
+  tags:
+    - k8s
+    - kata
