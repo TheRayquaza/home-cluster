@@ -7,15 +7,15 @@ metadata:
 spec:
   gatewayClassName: cilium
   listeners:
-  - name: https
-    port: 443
-    protocol: HTTPS
-    hostname: "*.rayq.app"
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - name: rayq-wildcard-tls
-        kind: Secret
-    allowedRoutes:
-      namespaces:
-        from: All
+    - name: https
+      port: 443
+      protocol: HTTPS
+      hostname: "*.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: rayq-wildcard-tls
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: All

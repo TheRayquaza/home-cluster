@@ -5,7 +5,7 @@ metadata:
   name: gateway
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1" # after argocd and cilium
+    argocd.argoproj.io/sync-wave: "0" # Ensure gateway is deployed early
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
