@@ -1,0 +1,10 @@
+---
+- name: restart networkd
+  systemd:
+    name: systemd-networkd
+    state: restarted
+
+- name: restart resolved
+  systemd:
+    name: systemd-resolved
+    state: restarted

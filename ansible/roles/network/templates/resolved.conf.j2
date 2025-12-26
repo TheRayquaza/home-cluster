@@ -1,0 +1,5 @@
+[Resolve]
+DNS={{ dns_servers | default('8.8.8.8 8.8.4.4 1.1.1.1') }}
+FallbackDNS={{ fallback_dns | default('9.9.9.9') }}
+Domains=~.
+DNSOverTLS=opportunistic

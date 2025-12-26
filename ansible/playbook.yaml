@@ -7,6 +7,7 @@
     - kubelet
   tags:
     - k8s
+    - all
     - kubelet
 
 - name: Setup Containerd
@@ -17,14 +18,16 @@
     - containerd
   tags:
     - k8s
+    - all
     - containerd
 
-- name: Setup Kata Runtime
+- name: Setup Network
   hosts:
     - master
   become: yes
   roles:
-    - kata
+    - network
   tags:
     - k8s
-    - kata
+    - all
+    - network
