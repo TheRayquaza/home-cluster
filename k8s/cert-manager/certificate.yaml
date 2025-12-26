@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rayq-wildcard-tls
+  namespace: cert-manager
+spec:
+  secretName: rayq-wildcard-tls
+  issuerRef:
+    name: letsencrypt-dns01
+    kind: ClusterIssuer
+  dnsNames:
+    - rayq.app
+    - "*.rayq.app"

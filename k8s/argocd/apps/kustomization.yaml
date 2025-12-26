@@ -1,5 +1,0 @@
-kind: Kustomization
-resources:
-  - argocd.yaml
-  - cilium.yaml
-  - kata.yaml

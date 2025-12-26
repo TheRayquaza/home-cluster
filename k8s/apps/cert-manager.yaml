@@ -1,0 +1,112 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  project: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+  sources:
+  - repoURL: https://charts.jetstack.io
+    chart: cert-manager
+    targetRevision: v1.18.2
+    helm:
+      releaseName: cert-manager
+      skipCrds: false
+      values: |
+        global:
+          imagePullSecrets: []
+          commonLabels: {}
+          priorityClassName: "critical-resilient"
+          rbac:
+            create: true
+            aggregateClusterRoles: true
+          podSecurityPolicy:
+            enabled: false
+            useAppArmor: true
+          logLevel: 2
+          leaderElection:
+            namespace: "kube-system"
+
+        crds:
+          enabled: true
+          keep: true
+
+        webhook:
+          networkPolicy:
+            enabled: true
+
+        serviceAccount:
+          create: true
+          automountServiceAccountToken: true
+
+        podDisruptionBudget:
+          enabled: false
+
+        featureGates: ""
+        maxConcurrentChallenges: 60
+
+        image:
+          repository: quay.io/jetstack/cert-manager-controller
+          pullPolicy: IfNotPresent
+
+        namespace: cert-manager
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+
+        livenessProbe:
+          enabled: true
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 15
+          successThreshold: 1
+          failureThreshold: 8
+
+        enableServiceLinks: false
+
+        prometheus:
+          enabled: true
+
+        acmesolver:
+          image:
+            repository: quay.io/jetstack/cert-manager-acmesolver
+            pullPolicy: IfNotPresent
+
+        startupapicheck:
+          enabled: true
+          timeout: 1m
+          backoffLimit: 4
+          image:
+            repository: quay.io/jetstack/cert-manager-startupapicheck
+            pullPolicy: IfNotPresent
+
+  - repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
+    targetRevision: main
+    path: k8s/cert-manager

@@ -1,0 +1,21 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: private-gateway
+  namespace: default
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - name: https
+    port: 443
+    protocol: HTTPS
+    hostname: "*.internal.rayq.app"
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: rayq-wildcard-tls
+        kind: Secret
+    allowedRoutes:
+      namespaces:
+        from: All

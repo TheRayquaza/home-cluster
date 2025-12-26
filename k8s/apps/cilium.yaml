@@ -5,7 +5,7 @@ metadata:
   name: cilium
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "0"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
@@ -26,7 +26,7 @@ spec:
       chart: cilium
       targetRevision: 1.18.5
       helm:
-        valuesObject:
+        values: |
           # -------------------------------------------------------------------
           # Hubble Relay & UI
           # -------------------------------------------------------------------
@@ -197,7 +197,3 @@ spec:
           # -------------------------------------------------------------------
           enableSCTP: false
           enableVTEP: false
-
-    - repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
-      targetRevision: HEAD
-      path: k8s/cilium

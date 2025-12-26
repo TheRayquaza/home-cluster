@@ -2,14 +2,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: kata
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "0"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
-    app: argocd
+    app: kata
 spec:
   project: default
   syncPolicy:
@@ -20,8 +20,13 @@ spec:
       selfHeal: true
   destination:
     name: in-cluster
-    namespace: argocd
+    namespace: kube-system
   source:
-    repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
-    targetRevision: HEAD
-    path: k8s/argocd
+    repoURL: oci://ghcr.io/kata-containers/kata-deploy-charts/kata-deploy
+    chart: kata-deploy
+    targetRevision: 3.24.0
+    helm:
+      values: |
+        k8sDistribution: "k8s"
+        runtimeClass:
+          enabled: true

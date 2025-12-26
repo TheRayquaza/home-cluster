@@ -1,5 +1,5 @@
 kind: Kustomization
 resources:
-  - route.yaml
   - namespace.yaml
-  - install.yaml
+  - pools.yaml
+  - crds.yaml
