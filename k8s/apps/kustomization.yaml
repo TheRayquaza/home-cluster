@@ -1,5 +1,6 @@
 kind: Kustomization
 resources:
+  - apps.yaml
   - argocd.yaml
   - cilium.yaml
   - kata.yaml
