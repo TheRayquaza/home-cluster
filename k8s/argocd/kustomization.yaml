@@ -2,4 +2,16 @@ kind: Kustomization
 resources:
   - route.yaml
   - namespace.yaml
-  - install.yaml
+
+  - secret.yaml
+  - configmap.yaml
+
+  - argocd-application-controller.yaml
+  - argocd-dex-server.yaml
+  - argocd-metrics.yaml
+  - argocd-repo-server.yaml
+  - argocd-notification-controller.yaml
+  - argocd-server.yaml
+  - argocd-redis.yaml
+
+  - https://github.com/argoproj/argo-cd/manifests/crds\?ref\=stable # external CRDs
