@@ -7,6 +7,7 @@ resources:
   - configmap.yaml
 
   - argocd-application-controller.yaml
+  - argocd-applicationset-controller.yaml
   - argocd-dex-server.yaml
   - argocd-metrics.yaml
   - argocd-repo-server.yaml

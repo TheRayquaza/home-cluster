@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller-metrics
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-controller-metrics
+  namespace: argocd
 spec:
   ports:
   - name: metrics
@@ -24,6 +25,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-secret
+  namespace: argocd
 type: Opaque
 ---
 apiVersion: v1
@@ -34,6 +36,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-cm
+  namespace: argocd
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -43,6 +46,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-controller
+  namespace: argocd
 spec:
   selector:
     matchLabels:
@@ -164,6 +168,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-controller
+  namespace: argocd
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -171,6 +176,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argocd-notifications-controller
+  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -180,6 +186,7 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-controller
+  namespace: argocd
 rules:
 - apiGroups:
   - argoproj.io
@@ -225,3 +232,4 @@ metadata:
     app.kubernetes.io/name: argocd-notifications-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-notifications-controller
+  namespace: argocd

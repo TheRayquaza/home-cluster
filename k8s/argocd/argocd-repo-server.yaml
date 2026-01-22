@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: argocd-repo-server
     app.kubernetes.io/part-of: argocd
   name: argocd-repo-server
+  namespace: argocd
 spec:
   ports:
   - name: server
@@ -28,6 +29,7 @@ metadata:
     app.kubernetes.io/name: argocd-repo-server
     app.kubernetes.io/part-of: argocd
   name: argocd-repo-server
+  namespace: argocd
 spec:
   selector:
     matchLabels:
@@ -441,3 +443,4 @@ metadata:
     app.kubernetes.io/name: argocd-repo-server
     app.kubernetes.io/part-of: argocd
   name: argocd-repo-server
+  namespace: argocd

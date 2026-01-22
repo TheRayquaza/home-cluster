@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: argocd-dex-server
     app.kubernetes.io/part-of: argocd
   name: argocd-dex-server
+  namespace: argocd
 spec:
   ports:
   - appProtocol: TCP
@@ -33,6 +34,7 @@ metadata:
     app.kubernetes.io/name: argocd-dex-server
     app.kubernetes.io/part-of: argocd
   name: argocd-dex-server
+  namespace: argocd
 spec:
   selector:
     matchLabels:
@@ -184,6 +186,7 @@ metadata:
     app.kubernetes.io/name: argocd-dex-server
     app.kubernetes.io/part-of: argocd
   name: argocd-dex-server
+  namespace: argocd
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -191,6 +194,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argocd-dex-server
+  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -200,6 +204,7 @@ metadata:
     app.kubernetes.io/name: argocd-dex-server
     app.kubernetes.io/part-of: argocd
   name: argocd-dex-server
+  namespace: argocd
 rules:
 - apiGroups:
   - ""
@@ -219,3 +224,4 @@ metadata:
     app.kubernetes.io/name: argocd-dex-server
     app.kubernetes.io/part-of: argocd
   name: argocd-dex-server
+  namespace: argocd

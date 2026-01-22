@@ -6,6 +6,7 @@ metadata:
     app.kubernetes.io/name: argocd-application-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-application-controller
+  namespace: argocd
 spec:
   replicas: 1
   selector:
@@ -399,6 +400,7 @@ metadata:
     app.kubernetes.io/name: argocd-application-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-application-controller
+  namespace: argocd
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -406,6 +408,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: argocd-application-controller
+  namespace: argocd
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -435,6 +438,7 @@ metadata:
     app.kubernetes.io/name: argocd-application-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-application-controller
+  namespace: argocd
 rules:
 - apiGroups:
   - ""
@@ -483,3 +487,4 @@ metadata:
     app.kubernetes.io/name: argocd-application-controller
     app.kubernetes.io/part-of: argocd
   name: argocd-application-controller
+  namespace: argocd

@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/name: argocd-metrics
     app.kubernetes.io/part-of: argocd
   name: argocd-metrics
+  namespace: argocd
 spec:
   ports:
   - name: metrics
@@ -24,6 +25,7 @@ metadata:
     app.kubernetes.io/name: argocd-server-metrics
     app.kubernetes.io/part-of: argocd
   name: argocd-server-metrics
+  namespace: argocd
 spec:
   ports:
   - name: metrics
