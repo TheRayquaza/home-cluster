@@ -21,7 +21,7 @@ spec:
 
   sources:
   - repoURL: https://charts.containeroo.ch
-    chart: containeroo/local-path-provisioner
+    chart: local-path-provisioner
     targetRevision: v0.0.34
     helm:
       releaseName: local-path-provisioner
