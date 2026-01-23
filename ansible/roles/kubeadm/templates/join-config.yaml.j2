@@ -1,0 +1,13 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: JoinConfiguration
+discovery:
+  bootstrapToken:
+    apiServerEndpoint: "{{ control_plane_ip }}:6443"
+    token: "{{ token }}"
+    caCertHashes: ["{{ ca_hash }}"]
+controlPlane:
+  certificateKey: "{{ master_cert_key | default('') }}"
+nodeRegistration:
+  name: "{{ inventory_hostname }}"
+  criSocket: "{{ cri_socket }}"

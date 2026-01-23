@@ -1,1 +1,5 @@
 argocd-repo.yaml
+
+# Ansible directories
+ansible/inventories/
+ansible/kubeconfigs/

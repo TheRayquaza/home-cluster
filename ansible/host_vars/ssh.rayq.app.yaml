@@ -1,0 +1,5 @@
+private_ip: 192.168.0.16
+control_plane_ip: "{{ private_ip }}"
+advertise_address: "{{ private_ip }}"
+control_plane_endpoint: "{{ private_ip }}:6443"
+node_name: "master"

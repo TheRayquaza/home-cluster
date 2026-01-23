@@ -1,0 +1,10 @@
+k8s_version: 1.35.0
+k8s_version_minor: "v1.35"
+k8s_package_version: "1.35.0-00"
+
+# Cluster Networking
+pod_network_cidr: "{{ lookup('env', 'POD_CIDR') | default('10.244.0.0/16') }}"
+service_cidr: "10.96.0.0/12"
+
+# etcd Tuning
+etcd_data_dir: "/var/lib/etcd"
