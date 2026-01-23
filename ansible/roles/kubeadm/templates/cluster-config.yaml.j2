@@ -1,0 +1,44 @@
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+clusterName: "{{ cluster_name }}"
+kubernetesVersion: "v{{ k8s_version }}"
+controlPlaneEndpoint: "{{ control_plane_ip }}:6443"
+certificatesDir: /etc/kubernetes/pki
+etcd:
+  local:
+    dataDir: "{{ etcd_data_dir }}"
+    extraArgs:
+      - name: "heartbeat-interval"
+        value: "100"
+      - name: "election-timeout"
+        value: "1000"
+      - name: "listen-client-urls"
+        value: "https://127.0.0.1:2379,https://{{ private_ip }}:2379"
+      - name: "advertise-client-urls"
+        value: "https://{{ private_ip }}:2379"
+      - name: "listen-peer-urls"
+        value: "https://{{ private_ip }}:2380"
+networking:
+  dnsDomain: "cluster.local"
+  podSubnet: "{{ pod_network_cidr }}"
+  serviceSubnet: "{{ service_cidr }}"
+# apiServer:
+#  certSANs:
+#    - "192.168.0.16"
+#    - "ssh.rayq.app"
+#  extraArgs:
+#    - name: "authorization-mode"
+#      value: "Node,RBAC"
+#    - name: "anonymous-auth"
+#      value: "false"
+#    - name: "etcd-servers"
+#      value: "https://127.0.0.1:2379,https://{{ private_ip }}:2379"
+scheduler:
+  extraArgs:
+    - name: "bind-address"
+      value: 0.0.0.0
+controllerManager:
+  extraArgs:
+    - name: "bind-address"
+      value: 0.0.0.0

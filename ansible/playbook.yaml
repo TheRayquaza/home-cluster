@@ -1,15 +1,4 @@
 ---
-- name: Setup Kubelet
-  hosts:
-    - master
-  become: yes
-  roles:
-    - kubelet
-  tags:
-    - k8s
-    - all
-    - kubelet
-
 - name: Setup Containerd
   hosts:
     - master
@@ -31,3 +20,14 @@
     - k8s
     - all
     - network
+
+- name: Setup K8S
+  hosts:
+    - master
+  become: yes
+  roles:
+    - kubeadm
+  tags:
+    - k8s
+    - all
+    - kubeadm

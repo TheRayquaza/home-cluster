@@ -1,0 +1,29 @@
+---
+- name: Ensure .kube directory exists in user home
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Copy admin.conf to user home
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+
+- name: Set KUBECONFIG environment variable in .bashrc
+  ansible.builtin.lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: 'export KUBECONFIG=$HOME/.kube/config'
+    state: present
+
+- name: Fetch admin.conf to local machine for ArgoCD/Local access
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "./kubeconfigs/{{ cluster_name | default('k8s-sandbox') }}-config"
+    flat: yes

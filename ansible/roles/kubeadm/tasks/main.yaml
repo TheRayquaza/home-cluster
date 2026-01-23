@@ -1,0 +1,76 @@
+- include_tasks: kernel.yaml
+- include_tasks: package.yaml
+
+- name: Ensure kubelet is enabled
+  systemd:
+    name: kubelet
+    enabled: yes
+    state: started
+
+# ---------------------------------------------------------
+# MASTER INITIALIZATION (Run only on the first master)
+# ---------------------------------------------------------
+- name: Bootstrap First Master
+  block:
+    - name: Pre-init cleanup of lingering K8s files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/kubernetes/manifests/kube-apiserver.yaml
+        - /etc/kubernetes/manifests/kube-controller-manager.yaml
+        - /etc/kubernetes/manifests/kube-scheduler.yaml
+        - /etc/kubernetes/manifests/etcd.yaml
+        - /var/lib/etcd/member
+
+    - name: Stop kubelet before init
+      systemd:
+        name: kubelet
+        state: stopped
+
+    - name: Template kubeadm config (Cluster + Init + Kubelet)
+      template:
+        src: "{{ item }}.j2"
+        dest: "/tmp/{{ item }}"
+      loop:
+        - cluster-config.yaml
+        - init-config.yaml
+        - kubelet-config.yaml
+      notify: Restart kubelet
+
+    - name: Merge configs into one file
+      shell: "cat /tmp/init-config.yaml /tmp/cluster-config.yaml /tmp/kubelet-config.yaml > /etc/kubernetes/kubeadm-config.yaml"
+
+    - name: Initialize Cluster
+      command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
+      args:
+        creates: /etc/kubernetes/admin.conf
+      register: kubeadm_output
+      failed_when: kubeadm_output.rc != 0
+      async: 600
+      poll: 10
+
+    - name: Show kubeadm output on failure
+      debug:
+        var: kubeadm_output.stdout_lines
+      when: kubeadm_output.failed
+
+    - name: Setup kubeconfig for user
+      include_tasks: user_configs.yaml
+  when: inventory_hostname == groups['master'][0]
+
+# ---------------------------------------------------------
+# JOIN LOGIC (Run on workers or secondary masters)
+# ---------------------------------------------------------
+- name: Join Cluster
+  block:
+    - name: Template Join Config
+      template:
+        src: join-config.yaml.j2
+        dest: /etc/kubernetes/join-config.yaml
+
+    - name: Run Join Command
+      command: kubeadm join --config /etc/kubernetes/join-config.yaml
+      args:
+        creates: /etc/kubernetes/kubelet.conf
+  when: inventory_hostname != groups['master'][0]

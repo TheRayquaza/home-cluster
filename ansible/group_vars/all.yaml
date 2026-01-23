@@ -1,0 +1,20 @@
+# Kubernetes Versioning
+# group_vars/all.yaml
+k8s_version: "{{ lookup('env', 'K8S_VERSION') | default('1.35.0', true) }}"
+k8s_version_minor: "v{{ k8s_version | regex_replace('^(\\d+\\.\\d+).*', '\\1') }}"
+k8s_package_version: "{{ k8s_version }}-1.1"
+
+# Cluster Identity
+cluster_name: "{{ lookup('env', 'K8S_CLUSTER_NAME') }}"
+cluster_dns_domain: "cluster.local"
+
+# Networking
+pod_network_cidr: "10.244.0.0/16"
+service_cidr: "10.96.0.0/12"
+cluster_dns_service_ip: "10.96.0.10"
+control_plane_endpoint: "{{ groups['master'][0] }}:6443"
+
+# System Paths & Runtimes
+cri_socket: "unix:///var/run/containerd/containerd.sock"
+etcd_data_dir: "/var/lib/etcd"
+cgroup_driver: "systemd"
