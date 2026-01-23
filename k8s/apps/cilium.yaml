@@ -71,9 +71,9 @@ spec:
           # kube-proxy replacement
           # -------------------------------------------------------------------
           kubeProxyReplacement: true
-          k8sServiceHost: auto
-          # k8sServiceHost: "192.168.0.16"
-          # k8sServicePort: "6443"
+          # k8sServiceHost: auto
+          k8sServiceHost: "192.168.0.16"
+          k8sServicePort: "6443"
 
           # -------------------------------------------------------------------
           # IPAM
