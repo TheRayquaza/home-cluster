@@ -110,15 +110,15 @@ spec:
 
         hostUsers: true
 
-        securityContext: {}
-          # allowPrivilegeEscalation: false
-          # seccompProfile:
-          #   type: RuntimeDefault
-          # capabilities:
-          #   drop: ["ALL"]
-          # runAsUser: 65534
-          # runAsGroup: 65534
-          # readOnlyRootFilesystem: true
+        securityContext:
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop: ["ALL"]
+          runAsUser: 65534
+          runAsGroup: 65534
+          readOnlyRootFilesystem: true
 
         resources:
           limits:
@@ -150,7 +150,7 @@ spec:
 
         affinity: {}
 
-        priorityClassName: ""
+        priorityClassName: "system-node-critical"
 
         podDisruptionBudget:
           enabled: false
