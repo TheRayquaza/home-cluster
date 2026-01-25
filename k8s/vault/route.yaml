@@ -6,7 +6,7 @@ metadata:
 spec:
   parentRefs:
     - name: private-gateway
-      namespace: vault
+      namespace: default
   hostnames:
     - vault.internal.rayq.app
   rules:
