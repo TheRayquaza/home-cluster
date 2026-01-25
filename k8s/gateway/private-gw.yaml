@@ -8,7 +8,7 @@ spec:
   gatewayClassName: cilium
   infrastructure:
     annotations:
-      metallb.io/address-pool: "private-pool"
+      io.cilium/lb-ipam-ips: "10.20.0.1"
   listeners:
     - name: https
       port: 443
