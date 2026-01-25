@@ -20,7 +20,10 @@ spec:
             kind: Secret
       allowedRoutes:
         namespaces:
-          from: All
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
 
     - name: hubble-https
       port: 443
@@ -33,7 +36,10 @@ spec:
             kind: Secret
       allowedRoutes:
         namespaces:
-          from: All
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
 
     - name: vault-https
       port: 443
@@ -46,17 +52,7 @@ spec:
             kind: Secret
       allowedRoutes:
         namespaces:
-          from: All
-
-    - name: wildcard-https
-      port: 443
-      protocol: HTTPS
-      hostname: "*.internal.rayq.app"
-      tls:
-        mode: Terminate
-        certificateRefs:
-          - name: rayq-wildcard-tls
-            kind: Secret
-      allowedRoutes:
-        namespaces:
-          from: All
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: vault
