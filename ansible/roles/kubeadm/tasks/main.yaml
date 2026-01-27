@@ -66,11 +66,24 @@
   block:
     - name: Template Join Config
       template:
-        src: join-config.yaml.j2
+        src: join-config-worker.yaml.j2
         dest: /etc/kubernetes/join-config.yaml
 
     - name: Run Join Command
       command: kubeadm join --config /etc/kubernetes/join-config.yaml
       args:
         creates: /etc/kubernetes/kubelet.conf
+    
+    - name: Add node ip in kubelet config
+      lineinfile:
+        path: /etc/default/kubelet
+        regexp: '^KUBELET_EXTRA_ARGS='
+        line: 'KUBELET_EXTRA_ARGS="--node-ip={{ wg_server_ip }}"'
+      notify: Restart kubelet
+
   when: inventory_hostname != groups['master'][0]
+
+- name: Change hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+  when: "'master' in group_names or 'workers' in group_names"

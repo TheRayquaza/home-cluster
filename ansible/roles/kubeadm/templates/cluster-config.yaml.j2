@@ -14,31 +14,23 @@ etcd:
       - name: "election-timeout"
         value: "1000"
       - name: "listen-client-urls"
-        value: "https://127.0.0.1:2379,https://{{ private_ip }}:2379"
+        value: "https://127.0.0.1:2379,https://{{ control_plane_ip }}:2379"
       - name: "advertise-client-urls"
-        value: "https://{{ private_ip }}:2379"
+        value: "https://{{ control_plane_ip }}:2379"
       - name: "listen-peer-urls"
-        value: "https://{{ private_ip }}:2380"
+        value: "https://{{ control_plane_ip }}:2380"
 networking:
   dnsDomain: "cluster.local"
   podSubnet: "{{ pod_network_cidr }}"
   serviceSubnet: "{{ service_cidr }}"
-# apiServer:
-#  certSANs:
-#    - "192.168.0.16"
-#    - "ssh.rayq.app"
-#  extraArgs:
-#    - name: "authorization-mode"
-#      value: "Node,RBAC"
-#    - name: "anonymous-auth"
-#      value: "false"
-#    - name: "etcd-servers"
-#      value: "https://127.0.0.1:2379,https://{{ private_ip }}:2379"
+apiServer:
+  certSANs:
+   - "{{ control_plane_ip }}"
 scheduler:
   extraArgs:
     - name: "bind-address"
-      value: 0.0.0.0
+      value: "{{ control_plane_ip }}"
 controllerManager:
   extraArgs:
     - name: "bind-address"
-      value: 0.0.0.0
+      value: "{{ control_plane_ip }}"

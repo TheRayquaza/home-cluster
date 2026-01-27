@@ -30,62 +30,104 @@
     state: directory
     mode: '0700'
 
-- name: Generate WireGuard server configuration
-  template:
-    src: wg.conf.j2
-    dest: "/etc/wireguard/{{ wg_interface }}.conf"
-    mode: '0600'
-  notify: restart wireguard
+- name: Wireguard Server setup
+  block:
 
-- name: Enable and start WireGuard service
-  systemd:
-    name: "wg-quick@{{ wg_interface }}"
-    enabled: yes
-    state: started
+  - name: Generate WireGuard server configuration
+    template:
+      src: wg.conf.j2
+      dest: "/etc/wireguard/{{ wg_interface }}.conf"
+      mode: '0600'
+    notify: restart wireguard
 
-- name: Allow WireGuard UDP port
-  ansible.builtin.command: >
-    iptables -C INPUT -p udp --dport {{ wg_port }} -j ACCEPT
-  ignore_errors: true
-  register: wg_port_rule_check
+  - name: Enable and start WireGuard service
+    systemd:
+      name: "wg-quick@{{ wg_interface }}"
+      enabled: yes
+      state: started
 
-- name: Add iptables rule to allow WireGuard UDP port
-  ansible.builtin.command: >
-    iptables -A INPUT -p udp --dport {{ wg_port }} -j ACCEPT
-  when: wg_port_rule_check.rc != 0
+  - name: Gather facts to detect network interfaces
+    ansible.builtin.setup:
+      gather_subset:
+        - network
 
-- name: Allow forwarding from VPN subnet
-  ansible.builtin.command: >
-    iptables -C FORWARD -s {{ wg_private_subnet }} -j ACCEPT
-  ignore_errors: true
-  register: forward_rule_check
+  - name: Allow WireGuard UDP port
+    ansible.builtin.iptables:
+      chain: INPUT
+      protocol: udp
+      destination_port: "{{ wg_port | string }}"
+      jump: ACCEPT
+      action: insert
+      comment: "WireGuard incoming traffic"
 
-- name: Add iptables forwarding rule
-  ansible.builtin.command: >
-    iptables -A FORWARD -s {{ wg_private_subnet }} -j ACCEPT
-  when: forward_rule_check.rc != 0
+  - name: Allow forwarding from VPN subnet
+    ansible.builtin.iptables:
+      chain: FORWARD
+      source: "{{ wg_private_subnet }}"
+      jump: ACCEPT
+      action: insert
+      comment: "Allow WireGuard subnet forwarding"
 
-- name: Enable NAT (MASQUERADE) for VPN clients
-  ansible.builtin.command: >
-    iptables -t nat -C POSTROUTING -s {{ wg_private_subnet }} -o {{ wan_interface }} -j MASQUERADE
-  ignore_errors: true
-  register: nat_rule_check
+  - name: Enable NAT (MASQUERADE) for VPN clients
+    ansible.builtin.iptables:
+      table: nat
+      chain: POSTROUTING
+      source: "{{ wg_private_subnet }}"
+      out_interface: "{{ ansible_default_ipv4.interface }}"
+      jump: MASQUERADE
+      comment: "NAT for WireGuard clients"
 
-- name: Add NAT rule for VPN clients
-  ansible.builtin.command: >
-    iptables -t nat -A POSTROUTING -s {{ wg_private_subnet }} -o {{ wan_interface }} -j MASQUERADE
-  when: nat_rule_check.rc != 0
+  - name: Install iptables-persistent package
+    apt:
+      name: iptables-persistent
+      state: present
+    when: ansible_os_family == "Debian"
 
-- name: Render all WireGuard client configurations locally
-  delegate_to: localhost
-  become: false
-  run_once: true
-  vars:
-    ansible_connection: local
-  template:
-    src: wg-client.conf.j2
-    dest: "./{{ client.name }}.conf"
-    mode: '0600'
-  loop: "{{ wg_clients }}"
-  loop_control:
-    loop_var: client
+  - name: Persist iptables rules
+    ansible.builtin.shell: |
+      netfilter-persistent save
+    changed_when: false
+    ignore_errors: true
+
+  - name: Setup directory for static WireGuard client configs
+    delegate_to: localhost
+    become: false
+    run_once: true
+    vars:
+      ansible_connection: local
+    file:
+      path: "./static/wg"
+      state: directory
+      mode: '0700'
+
+  - name: Render all WireGuard client configurations locally
+    delegate_to: localhost
+    become: false
+    run_once: true
+    vars:
+      ansible_connection: local
+    template:
+      src: wg-client.conf.j2
+      dest: "./static/wg/{{ client.name }}.conf"
+      mode: '0600'
+    loop: "{{ wg_clients }}"
+    loop_control:
+      loop_var: client
+    when: wg_clients is defined
+  when: groups['master'][0] == inventory_hostname
+
+- name: Wireguard Client setup
+  block:
+  - name: Copy WireGuard client configuration
+    copy:
+      src: "./static/wg/{{ wg_client_name }}.conf"
+      dest: "/etc/wireguard/{{ wg_interface }}.conf"
+      mode: '0600'
+    notify: restart wireguard
+
+  - name: Enable and start WireGuard service
+    systemd:
+      name: "wg-quick@{{ wg_interface }}"
+      enabled: yes
+      state: started
+  when: wg_client_name is defined and inventory_hostname not in groups['master']

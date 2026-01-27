@@ -22,8 +22,14 @@
     line: 'export KUBECONFIG=$HOME/.kube/config'
     state: present
 
+- name: Add static kubeconfig directory
+  ansible.builtin.file:
+    path: "./static/kubeconfigs"
+    state: directory
+    mode: '0700'
+
 - name: Fetch admin.conf to local machine for ArgoCD/Local access
   ansible.builtin.fetch:
     src: /etc/kubernetes/admin.conf
-    dest: "./kubeconfigs/{{ cluster_name | default('k8s-sandbox') }}-config"
+    dest: "./static/kubeconfigs/{{ cluster_name | default('k8s-sandbox') }}-config"
     flat: yes

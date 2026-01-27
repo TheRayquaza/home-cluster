@@ -15,6 +15,14 @@
   become: yes
   when: ansible_os_family == "Debian"
 
+- name: Create containerd configuration directory
+  file:
+    path: /etc/containerd
+    state: directory
+    mode: '0755'
+  become: yes
+  when: ansible_os_family == "Debian"
+
 - name: Write containerd configuration file
   copy:
     src: config.toml

@@ -4,10 +4,8 @@ kind: JoinConfiguration
 discovery:
   bootstrapToken:
     apiServerEndpoint: "{{ control_plane_ip }}:6443"
-    token: "{{ token }}"
+    token: "{{ bootstrap_token }}"
     caCertHashes: ["{{ ca_hash }}"]
-controlPlane:
-  certificateKey: "{{ master_cert_key | default('') }}"
 nodeRegistration:
   name: "{{ inventory_hostname }}"
   criSocket: "{{ cri_socket }}"

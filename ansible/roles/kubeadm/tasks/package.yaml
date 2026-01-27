@@ -22,11 +22,15 @@
     state: present
     filename: kubernetes
 
-- name: Unhold Kubernetes packages to allow update
-  ansible.builtin.dpkg_selections:
-    name: "{{ item }}"
-    selection: install
-  loop: [kubelet, kubeadm, kubectl]
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+# - name: Unhold Kubernetes packages to allow update
+#   ansible.builtin.dpkg_selections:
+#     name: "{{ item }}"
+#     selection: install
+#   loop: [kubelet, kubeadm, kubectl]
 
 - name: Install K8s binaries
   ansible.builtin.apt:

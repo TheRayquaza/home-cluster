@@ -1,7 +1,9 @@
 [Interface]
 Address = {{ client.private_ip }}
 PrivateKey = {{ client.private_key }}
+{{ if client.wg_dns }}
 DNS = {{ client.wg_dns }}
+{{ endif }}
 
 [Peer]
 PublicKey = {{ wg_public_key }}
