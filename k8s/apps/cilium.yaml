@@ -73,6 +73,6 @@ spec:
           # -------------------------------------------------------------------
           priorityClassName: system-cluster-critical
 
-    - repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
+    - repoURL: https://github.com/TheRayquaza/home-cluster.git
       targetRevision: HEAD
       path: k8s/cilium

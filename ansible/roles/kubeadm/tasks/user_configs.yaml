@@ -31,5 +31,5 @@
 - name: Fetch admin.conf to local machine for ArgoCD/Local access
   ansible.builtin.fetch:
     src: /etc/kubernetes/admin.conf
-    dest: "./static/kubeconfigs/{{ cluster_name | default('k8s-sandbox') }}-config"
+    dest: "./static/kubeconfigs/{{ cluster_name | default('home-cluster') }}-config"
     flat: yes

@@ -84,6 +84,6 @@ spec:
         prometheus:
           enabled: true
 
-  - repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/cert-manager

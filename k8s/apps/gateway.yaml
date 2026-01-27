@@ -22,6 +22,6 @@ spec:
     name: in-cluster
     namespace: kube-system
   source:
-    repoURL: https://github.com/TheRayquaza/k8s-sandbox.git
+    repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: HEAD
     path: k8s/gateway
