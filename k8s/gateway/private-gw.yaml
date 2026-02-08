@@ -88,3 +88,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: immich
+
+    - name: uptime-kuma-https
+      port: 443
+      protocol: HTTPS
+      hostname: "uptime.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: uptime-kuma-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: uptime-kuma

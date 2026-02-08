@@ -1,0 +1,21 @@
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: uptime-kuma-route
+  namespace: uptime-kuma
+spec:
+  parentRefs:
+    - name: private-gateway
+      namespace: default
+      sectionName: uptime-kuma-https
+  hostnames:
+    - uptime.internal.rayq.app
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+      - name: uptime-kuma-service
+        port: 3001

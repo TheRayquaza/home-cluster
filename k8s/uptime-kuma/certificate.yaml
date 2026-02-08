@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: uptime-kuma-tls-secret
+  namespace: default
+spec:
+  secretName: uptime-kuma-tls-secret
+  issuerRef:
+    name: letsencrypt-dns01
+    kind: ClusterIssuer
+  dnsNames:
+    - uptime.internal.rayq.app
