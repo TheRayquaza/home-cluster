@@ -28,5 +28,4 @@ spec:
     helm:
       values: |
         k8sDistribution: "k8s"
-        runtimeClass:
-          enabled: true
+

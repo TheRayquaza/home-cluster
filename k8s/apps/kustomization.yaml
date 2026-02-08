@@ -12,3 +12,4 @@ resources:
   - local-path-provisioner.yaml
   - pinchflat.yaml
   - immich.yaml
+  - uptime-kuma.yaml

@@ -21,7 +21,7 @@ spec:
   destination:
     name: in-cluster
     namespace: kube-system
-  source:
+  sources:
     - repoURL: https://github.com/TheRayquaza/home-cluster.git
       targetRevision: main
       path: k8s/uptime-kuma
