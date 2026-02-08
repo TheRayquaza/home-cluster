@@ -1,0 +1,27 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: uptime-kuma
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app: uptime-kuma
+spec:
+  project: default
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true
+  destination:
+    name: in-cluster
+    namespace: kube-system
+  source:
+    - repoURL: https://github.com/TheRayquaza/home-cluster.git
+      targetRevision: main
+      path: k8s/uptime-kuma
