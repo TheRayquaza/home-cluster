@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pix
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1" # after es
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: pix
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+  sources:
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/pix

@@ -13,3 +13,4 @@ resources:
   - pinchflat.yaml
   - immich.yaml
   - uptime-kuma.yaml
+  - pix.yaml

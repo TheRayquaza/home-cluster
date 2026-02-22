@@ -104,3 +104,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: uptime-kuma
+
+    - name: pix-https
+      port: 443
+      protocol: HTTPS
+      hostname: "pix.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: pix-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: pix

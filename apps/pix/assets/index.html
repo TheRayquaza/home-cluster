@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PixelVault OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; background: #fff; overflow: hidden; font-family: monospace; }
+        #scroll-container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
+        .screen { 
+            height: 100vh; width: 100vw; scroll-snap-align: start;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden; background: #fff;
+        }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        .bg-canvas { z-index: 1; opacity: 0.1; filter: blur(60px); }
+        .pixel-canvas { z-index: 10; width: 100%; height: 100%; }
+        
+        /* Delete Button Styling */
+        .del-btn {
+            position: absolute; top: 2rem; right: 2rem; z-index: 50;
+            color: #d1d5db; transition: all 0.2s; cursor: pointer;
+            background: none; border: none; font-size: 1.5rem;
+        }
+        .del-btn:hover { color: #9ca3af; transform: scale(1.2); }
+
+        .input-overlay {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            z-index: 100; width: 90%; max-width: 400px;
+        }
+        .input-field {
+            width: 100%; background: rgba(255,255,255,0.9); backdrop-blur: 10px;
+            border: 2px solid #eee; padding: 1rem; text-align: center;
+            outline: none; transition: all 0.3s; font-weight: bold;
+        }
+        .input-field:focus { border-color: #000; }
+    </style>
+</head>
+<body>
+
+    <div class="input-overlay">
+        <form action="/" method="POST">
+            <input name="message" placeholder="TYPE NEW MESSAGE..." autofocus class="input-field">
+        </form>
+    </div>
+
+    <div id="scroll-container">
+        {{range .Notes}}
+        <section class="screen">
+            <form action="/delete" method="POST">
+                <input type="hidden" name="id" value="{{.ID}}">
+                <button type="submit" class="del-btn">✕</button>
+            </form>
+            <canvas class="bg-canvas"></canvas>
+            <canvas class="pixel-canvas" data-msg="{{.Message}}"></canvas>
+        </section>
+        {{end}}
+    </div>
+
+    <script>
+        const font = {
+            'A':[0,1,1,1,0,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],'B':[1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,1,1,1,1,1,0],
+            'C':[0,1,1,1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,1,1,1,1],'D':[1,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,1,1,1,0],
+            'E':[1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,1,0,0,0,0,1,1,1,1,1],'F':[1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,1,0,0,0,0,1,0,0,0,0],
+            'G':[0,1,1,1,1,1,0,0,0,0,1,0,1,1,1,1,0,0,0,1,0,1,1,1,1],'H':[1,0,0,0,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,1],
+            'I':[0,1,1,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,1,0],'J':[0,0,1,1,1,0,0,0,1,0,0,0,0,1,0,1,0,0,1,0,0,1,1,0,0],
+            'K':[1,0,0,0,1,1,0,0,1,0,1,1,1,0,0,1,0,0,1,0,1,0,0,0,1],'L':[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,1,1,1],
+            'M':[1,0,0,0,1,1,1,0,1,1,1,0,1,0,1,1,0,0,0,1,1,0,0,0,1],'N':[1,0,0,0,1,1,1,0,0,1,1,0,1,0,1,1,0,0,1,1,1,0,0,0,1],
+            'O':[0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0],'P':[1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,0,0,0,1,0,0,0,0],
+            'Q':[0,1,1,1,0,1,0,0,0,1,1,0,0,0,1,1,0,1,1,0,0,1,1,0,1],'R':[1,1,1,1,0,1,0,0,0,1,1,1,1,1,0,1,0,1,0,0,1,0,0,1,0],
+            'S':[0,1,1,1,1,1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,1,1,1,1,0],'T':[1,1,1,1,1,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],
+            'U':[1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,0,1,1,1,0],'V':[1,0,0,0,1,1,0,0,0,1,1,0,0,0,1,0,1,0,1,0,0,0,1,0,0],
+            'W':[1,0,0,0,1,1,0,0,0,1,1,0,1,0,1,1,1,0,1,1,1,0,0,0,1],'X':[1,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,0,0,1],
+            'Y':[1,0,0,0,1,0,1,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0],'Z':[1,1,1,1,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,1,1,1,1],
+            ' ':[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],'!':[0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0],
+            '?':[0,1,1,1,0,0,0,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,1,0,0],'.':[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0]
+        };
+
+        function getVividColor() { return `hsl(${Math.random() * 360}, 100%, 50%)`; }
+
+        class MessageRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.msg = canvas.dataset.msg.toUpperCase();
+                this.time = Math.random() * 10;
+                this.pixels = [];
+                this.init();
+            }
+            init() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                const scale = Math.min(window.innerWidth / 55, 12);
+                let x = 60, y = window.innerHeight / 2.5;
+                this.msg.split('').forEach(char => {
+                    const bitmap = font[char] || font[' '];
+                    const color = getVividColor();
+                    for (let i = 0; i < 25; i++) {
+                        if (bitmap[i] === 1) {
+                            this.pixels.push({ ox: x + (i % 5) * scale, oy: y + Math.floor(i / 5) * scale, size: scale - 1, color: color, phase: Math.random() * 5 });
+                        }
+                    }
+                    x += (scale * 7);
+                    if (x > this.canvas.width - 120) { x = 60; y += (scale * 8); }
+                });
+            }
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.time += 0.02; // Slower time for less movement
+                this.pixels.forEach(p => {
+                    // Very subtle micro-vibration
+                    const driftX = Math.sin(this.time + p.phase) * 0.8;
+                    const driftY = Math.cos(this.time + p.phase) * 0.8;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.ox + driftX, p.oy + driftY, p.size, p.size);
+                });
+            }
+        }
+
+        class BgEffect {
+            constructor(canvas) {
+                this.canvas = canvas; this.ctx = canvas.getContext('2d');
+                this.dots = []; this.init();
+            }
+            init() {
+                this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight;
+                for(let i=0; i<15; i++) {
+                    this.dots.push({ x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height, vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5, size: Math.random()*200+100, color: getVividColor() });
+                }
+            }
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.dots.forEach(d => {
+                    d.x += d.vx; d.y += d.vy;
+                    this.ctx.fillStyle = d.color;
+                    this.ctx.beginPath(); this.ctx.arc(d.x, d.y, d.size, 0, Math.PI*2); this.ctx.fill();
+                });
+            }
+        }
+
+        const renderers = [], bgs = [];
+        function start() {
+            document.querySelectorAll('.pixel-canvas').forEach(c => renderers.push(new MessageRenderer(c)));
+            document.querySelectorAll('.bg-canvas').forEach(c => bgs.push(new BgEffect(c)));
+        }
+        function loop() {
+            renderers.forEach(r => r.draw());
+            bgs.forEach(b => b.draw());
+            requestAnimationFrame(loop);
+        }
+        window.onload = () => { start(); loop(); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pix-route
+  namespace: pix
+spec:
+  parentRefs:
+    - name: private-gateway
+      namespace: default
+      sectionName: pix-https
+  hostnames:
+    - pix.internal.rayq.app
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+      - name: pix-service
+        port: 8080
