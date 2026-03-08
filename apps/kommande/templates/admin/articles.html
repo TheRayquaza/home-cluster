@@ -1,0 +1,62 @@
+{{define "content"}}
+<div class="container page-section">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Articles</h1>
+      <p class="page-subtitle">Gérez le catalogue</p>
+    </div>
+    <a href="/admin/articles/new" class="btn btn-primary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nouvel article
+    </a>
+  </div>
+
+  {{if not .Data}}
+  <div class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    <p>Aucun article. Créez-en un !</p>
+    <a href="/admin/articles/new" class="btn btn-primary">Créer un article</a>
+  </div>
+  {{else}}
+  <div class="admin-articles-grid">
+    {{range .Data}}
+    <div class="admin-article-card">
+      <div class="article-image">
+        {{if .ImageID}}
+        <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
+        {{else}}
+        <div class="article-placeholder">{{initial .Name}}</div>
+        {{end}}
+      </div>
+      <div class="admin-article-info">
+        <div class="admin-article-header">
+          <h3 class="article-name">{{.Name}}</h3>
+          {{if .Available}}
+          <span class="badge badge-success">Disponible</span>
+          {{else}}
+          <span class="badge badge-danger">Indisponible</span>
+          {{end}}
+        </div>
+        <p class="article-unit">Unité : <strong>{{.Unit}}</strong></p>
+        {{if .Description}}
+        <p class="article-desc">{{.Description}}</p>
+        {{end}}
+      </div>
+      <div class="admin-article-actions">
+        <a href="/admin/articles/{{.ID}}/edit" class="btn btn-sm btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Modifier
+        </a>
+        <form action="/admin/articles/{{.ID}}/delete" method="POST" onsubmit="return confirm('Supprimer cet article ?')">
+          <button type="submit" class="btn btn-sm btn-danger">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Supprimer
+          </button>
+        </form>
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{end}}
+</div>
+{{end}}

@@ -1,0 +1,84 @@
+{{define "content"}}
+<div class="container page-section">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{if .Data}}Modifier l'article{{else}}Nouvel article{{end}}</h1>
+    </div>
+    <a href="/admin/articles" class="btn btn-secondary">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour
+    </a>
+  </div>
+
+  <div class="form-card">
+    <form
+      action="{{if .Data}}/admin/articles/{{.Data.ID.Hex}}{{else}}/admin/articles{{end}}"
+      method="POST"
+      enctype="multipart/form-data"
+      class="article-form"
+    >
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Nom de l'article <span class="required">*</span></label>
+          <input type="text" id="name" name="name" value="{{if .Data}}{{.Data.Name}}{{end}}" placeholder="Ex: Tomates cerises" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="unit">Unité <span class="required">*</span></label>
+          <select id="unit" name="unit" required>
+            <option value="">Choisir une unité</option>
+            {{$current := ""}}{{if .Data}}{{$current = .Data.Unit}}{{end}}
+              <option value="pièce"{{if eq "pièce" $current}} selected{{end}}>pièce</option>
+            <option value="kg"{{if eq "kg" $current}} selected{{end}}>kg</option>
+            <option value="g"{{if eq "g" $current}} selected{{end}}>g</option>
+            <option value="L"{{if eq "L" $current}} selected{{end}}>L</option>
+            <option value="cL"{{if eq "cL" $current}} selected{{end}}>cL</option>
+            <option value="botte"{{if eq "botte" $current}} selected{{end}}>botte</option>
+            <option value="barquette"{{if eq "barquette" $current}} selected{{end}}>barquette</option>
+            <option value="paquet"{{if eq "paquet" $current}} selected{{end}}>paquet</option>
+            <option value="bouteille"{{if eq "bouteille" $current}} selected{{end}}>bouteille</option>
+            <option value="boîte"{{if eq "boîte" $current}} selected{{end}}>boîte</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3" placeholder="Description courte de l'article...">{{if .Data}}{{.Data.Description}}{{end}}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="image">Photo de l'article</label>
+        {{if .Data}}{{if .Data.ImageID}}
+        <div class="image-preview-current">
+          <img src="/images/{{imageURL .Data.ImageID}}" alt="Photo actuelle" class="image-preview-thumb">
+          <p class="image-preview-label">Photo actuelle — uploadez une nouvelle pour la remplacer</p>
+        </div>
+        {{end}}{{end}}
+        <div class="file-upload-area" id="file-upload-area">
+          <input type="file" id="image" name="image" accept="image/*" class="file-input">
+          <label for="image" class="file-upload-label">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span id="file-upload-text">Cliquer pour choisir une image (JPG, PNG, WEBP)</span>
+          </label>
+          <img id="image-preview" class="image-preview-new" style="display:none" alt="Aperçu">
+        </div>
+      </div>
+
+      <div class="form-group form-check">
+        <label class="checkbox-label">
+          <input type="checkbox" name="available" id="available" {{if not .Data}}checked{{else if .Data.Available}}checked{{end}}>
+          <span class="checkbox-custom"></span>
+          Article disponible à la commande
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <a href="/admin/articles" class="btn btn-secondary">Annuler</a>
+        <button type="submit" class="btn btn-primary">
+          {{if .Data}}Enregistrer les modifications{{else}}Créer l'article{{end}}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}

@@ -1,0 +1,340 @@
+package handlers
+
+import (
+	"context"
+	"io"
+	"net/http"
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	"kommande/internal/models"
+)
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+
+type dashboardData struct {
+	UserCount    int64
+	ArticleCount int64
+	TodayOrders  int64
+	PendingCount int64
+	RecentOrders []models.Order
+}
+
+func (h *Handler) AdminDashboard(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	today := time.Now().Format("2006-01-02")
+
+	userCount, _ := h.db.Collection("users").CountDocuments(ctx, bson.M{})
+	articleCount, _ := h.db.Collection("articles").CountDocuments(ctx, bson.M{})
+	todayOrders, _ := h.db.Collection("orders").CountDocuments(ctx, bson.M{"date": today})
+	pendingCount, _ := h.db.Collection("orders").CountDocuments(ctx, bson.M{"date": today, "status": "pending"})
+
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(5)
+	cursor, _ := h.db.Collection("orders").Find(ctx, bson.M{"date": today}, opts)
+	var recent []models.Order
+	if cursor != nil {
+		cursor.All(ctx, &recent)
+		cursor.Close(ctx)
+	}
+
+	h.render(w, r, "templates/admin/dashboard.html", "Tableau de bord", dashboardData{
+		UserCount:    userCount,
+		ArticleCount: articleCount,
+		TodayOrders:  todayOrders,
+		PendingCount: pendingCount,
+		RecentOrders: recent,
+	})
+}
+
+// ─── Articles ─────────────────────────────────────────────────────────────────
+
+func (h *Handler) AdminArticles(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	cursor, err := h.db.Collection("articles").Find(ctx, bson.M{})
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var articles []models.Article
+	if err := cursor.All(ctx, &articles); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	h.render(w, r, "templates/admin/articles.html", "Articles", articles)
+}
+
+func (h *Handler) AdminNewArticle(w http.ResponseWriter, r *http.Request) {
+	h.render(w, r, "templates/admin/article-form.html", "Nouvel article", nil)
+}
+
+func (h *Handler) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	unit := r.FormValue("unit")
+	available := r.FormValue("available") == "on"
+
+	if name == "" || unit == "" {
+		setFlash(w, "Nom et unité sont obligatoires.", "danger")
+		http.Redirect(w, r, "/admin/articles/new", http.StatusSeeOther)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+
+	now := time.Now()
+	article := models.Article{
+		ID:          bson.NewObjectID(),
+		Name:        name,
+		Description: description,
+		Unit:        unit,
+		Available:   available,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	// Handle image upload
+	imageID, err := h.uploadImage(ctx, r)
+	if err == nil {
+		article.ImageID = &imageID
+	}
+
+	if _, err := h.db.Collection("articles").InsertOne(ctx, article); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	setFlash(w, "Article créé avec succès.", "success")
+	http.Redirect(w, r, "/admin/articles", http.StatusSeeOther)
+}
+
+func (h *Handler) AdminEditArticle(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	var article models.Article
+	if err := h.db.Collection("articles").FindOne(ctx, bson.M{"_id": id}).Decode(&article); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	h.render(w, r, "templates/admin/article-form.html", "Modifier "+article.Name, &article)
+}
+
+func (h *Handler) AdminUpdateArticle(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	unit := r.FormValue("unit")
+	available := r.FormValue("available") == "on"
+
+	if name == "" || unit == "" {
+		setFlash(w, "Nom et unité sont obligatoires.", "danger")
+		http.Redirect(w, r, "/admin/articles/"+idStr+"/edit", http.StatusSeeOther)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+
+	update := bson.M{
+		"name":        name,
+		"description": description,
+		"unit":        unit,
+		"available":   available,
+		"updated_at":  time.Now(),
+	}
+
+	// Handle new image upload
+	imageID, err := h.uploadImage(ctx, r)
+	if err == nil {
+		update["image_id"] = imageID
+	}
+
+	if _, err := h.db.Collection("articles").UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": update},
+	); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	setFlash(w, "Article mis à jour.", "success")
+	http.Redirect(w, r, "/admin/articles", http.StatusSeeOther)
+}
+
+func (h *Handler) AdminDeleteArticle(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	h.db.Collection("articles").DeleteOne(ctx, bson.M{"_id": id})
+
+	setFlash(w, "Article supprimé.", "success")
+	http.Redirect(w, r, "/admin/articles", http.StatusSeeOther)
+}
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+
+type adminOrdersData struct {
+	Orders []models.Order
+	Date   string
+}
+
+func (h *Handler) AdminOrders(w http.ResponseWriter, r *http.Request) {
+	date := r.URL.Query().Get("date")
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	opts := options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}})
+	cursor, err := h.db.Collection("orders").Find(ctx, bson.M{"date": date}, opts)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var orders []models.Order
+	if err := cursor.All(ctx, &orders); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	h.render(w, r, "templates/admin/orders.html", "Commandes du jour", adminOrdersData{
+		Orders: orders,
+		Date:   date,
+	})
+}
+
+func (h *Handler) AdminRespondOrder(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	action := r.FormValue("action") // confirm, deliver, cancel
+	note := r.FormValue("note")
+
+	newStatus := ""
+	switch action {
+	case "confirm":
+		newStatus = "confirmed"
+	case "deliver":
+		newStatus = "delivered"
+	case "cancel":
+		newStatus = "cancelled"
+	default:
+		http.Error(w, "Invalid action", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	_, err = h.db.Collection("orders").UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": bson.M{
+			"status":     newStatus,
+			"admin_note": note,
+			"updated_at": time.Now(),
+		}},
+	)
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Redirect back to the orders page for that date
+	date := r.FormValue("date")
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+	setFlash(w, "Commande mise à jour.", "success")
+	http.Redirect(w, r, "/admin/orders?date="+date, http.StatusSeeOther)
+}
+
+// ─── Image upload helper ──────────────────────────────────────────────────────
+
+func (h *Handler) uploadImage(ctx context.Context, r *http.Request) (bson.ObjectID, error) {
+	file, header, err := r.FormFile("image")
+	if err != nil {
+		return bson.NilObjectID, err
+	}
+	defer file.Close()
+
+	bucket := h.db.GridFSBucket()
+
+	contentType := header.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/jpeg"
+	}
+
+	uploadStream, err := bucket.OpenUploadStream(
+		ctx,
+		header.Filename,
+		options.GridFSUpload().SetMetadata(bson.D{{Key: "content_type", Value: contentType}}),
+	)
+	if err != nil {
+		return bson.NilObjectID, err
+	}
+	defer uploadStream.Close()
+
+	if _, err := io.Copy(uploadStream, file); err != nil {
+		return bson.NilObjectID, err
+	}
+
+	fileID, ok := uploadStream.FileID.(bson.ObjectID)
+	if !ok {
+		return bson.NilObjectID, nil
+	}
+	return fileID, nil
+}

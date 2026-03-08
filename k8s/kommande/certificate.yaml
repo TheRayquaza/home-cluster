@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kommande-tls-secret
+  namespace: default
+spec:
+  secretName: kommande-tls-secret
+  issuerRef:
+    name: letsencrypt-dns01
+    kind: ClusterIssuer
+  dnsNames:
+    - kommande.internal.rayq.app

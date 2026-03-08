@@ -120,3 +120,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: pix
+
+    - name: kommande-https
+      port: 443
+      protocol: HTTPS
+      hostname: "kommande.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: kommande-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: kommande

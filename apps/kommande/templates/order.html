@@ -1,0 +1,95 @@
+{{define "content"}}
+<div class="container page-section">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Commander</h1>
+      <p class="page-subtitle">{{.Data.Today}}</p>
+    </div>
+  </div>
+
+  {{if .Data.TodayOrder}}
+    {{if ne .Data.TodayOrder.Status "pending"}}
+    <div class="order-status-banner status-{{.Data.TodayOrder.Status}}">
+      <strong>Votre commande est {{statusLabel .Data.TodayOrder.Status}}.</strong>
+      {{if .Data.TodayOrder.AdminNote}}
+      <span>Note de l'admin : {{.Data.TodayOrder.AdminNote}}</span>
+      {{end}}
+      <span>Contactez l'administrateur pour toute modification.</span>
+    </div>
+    {{else}}
+    <div class="order-status-banner status-pending">
+      <strong>Vous avez déjà une commande en attente.</strong>
+      Modifiez les quantités ci-dessous et validez à nouveau pour mettre à jour.
+    </div>
+    {{end}}
+  {{end}}
+
+  {{if not .Data.Articles}}
+  <div class="empty-state">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    <p>Aucun article disponible.</p>
+  </div>
+  {{else}}
+
+  {{$order := .Data.TodayOrder}}
+  {{$editable := true}}
+  {{if $order}}
+    {{if ne $order.Status "pending"}}{{$editable = false}}{{end}}
+  {{end}}
+
+  <form action="/order" method="POST" id="order-form">
+    <div class="order-grid">
+      {{range .Data.Articles}}
+      <div class="order-card">
+        <div class="article-image">
+          {{if .ImageID}}
+          <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
+          {{else}}
+          <div class="article-placeholder">{{initial .Name}}</div>
+          {{end}}
+        </div>
+        <div class="order-card-body">
+          <h3 class="article-name">{{.Name}}</h3>
+          <span class="article-unit">{{.Unit}}</span>
+          {{if .Description}}
+          <p class="article-desc">{{.Description}}</p>
+          {{end}}
+          <div class="qty-control">
+            {{if $editable}}
+            <button type="button" class="qty-btn qty-minus" aria-label="Diminuer">−</button>
+            <input
+              type="number"
+              name="qty_{{.ID.Hex}}"
+              class="qty-input"
+              value="{{quantityFor $order .ID}}"
+              min="0"
+              step="{{unitStep .Unit}}"
+              aria-label="Quantité de {{.Name}}"
+            >
+            <span class="qty-unit">{{.Unit}}</span>
+            <button type="button" class="qty-btn qty-plus" aria-label="Augmenter">+</button>
+            {{else}}
+            <span class="qty-static">{{quantityFor $order .ID}} {{.Unit}}</span>
+            {{end}}
+          </div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+
+    {{if $editable}}
+    <div class="order-footer" id="order-footer">
+      <div class="container order-footer-inner">
+        <span class="order-summary" id="order-summary">0 article sélectionné</span>
+        <button type="submit" class="btn btn-primary btn-order-submit">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Valider la commande
+        </button>
+      </div>
+    </div>
+    {{end}}
+  </form>
+
+  {{end}}
+</div>
+{{end}}
