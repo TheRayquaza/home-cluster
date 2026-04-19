@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: pix
-          image: ghcr.io/therayquaza/home-cluster/pix:v0.1.2
+          image: ghcr.io/therayquaza/home-cluster/pix:0.1.2@sha256:22e25204d8b33eb509f925b2c6fd655dd56d6a8b3b97cd30b11b46b74dde5486
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
