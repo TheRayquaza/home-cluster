@@ -65,6 +65,8 @@ func main() {
 	mux.Handle("GET /order", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.OrderPage)))
 	mux.Handle("POST /order", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.SubmitOrder)))
 	mux.Handle("GET /orders", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.MyOrders)))
+	mux.Handle("GET /profile", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.ProfilePage)))
+	mux.Handle("POST /profile", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.UpdateProfile)))
 	mux.Handle("GET /images/{id}", middleware.RequireAuth(cfg.JWTSecret, http.HandlerFunc(h.ServeImage)))
 
 	// Admin routes (require admin role)
@@ -75,6 +77,9 @@ func main() {
 	mux.Handle("GET /admin/articles/{id}/edit", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminEditArticle)))
 	mux.Handle("POST /admin/articles/{id}", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminUpdateArticle)))
 	mux.Handle("POST /admin/articles/{id}/delete", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminDeleteArticle)))
+	mux.Handle("GET /admin/categories", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminCategories)))
+	mux.Handle("POST /admin/categories", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminCreateCategory)))
+	mux.Handle("POST /admin/categories/{id}/delete", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminDeleteCategory)))
 	mux.Handle("GET /admin/orders", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminOrders)))
 	mux.Handle("POST /admin/orders/{id}/respond", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminRespondOrder)))
 

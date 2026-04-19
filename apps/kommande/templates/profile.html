@@ -1,0 +1,47 @@
+{{define "content"}}
+<div class="container page-section">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mon profil</h1>
+      <p class="page-subtitle">Gérez vos informations personnelles</p>
+    </div>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-photo-section">
+      {{if .Data.PhotoID}}
+      <img src="/images/{{imageURL .Data.PhotoID}}" alt="Photo de profil" class="profile-photo">
+      {{else}}
+      <div class="profile-photo-placeholder">{{initial .Data.Username}}</div>
+      {{end}}
+      <div>
+        <p class="profile-username">{{.Data.Username}}</p>
+        <p class="profile-role">{{if eq .Data.Role "admin"}}Administrateur{{else}}Utilisateur{{end}}</p>
+      </div>
+    </div>
+
+    <form action="/profile" method="POST" enctype="multipart/form-data" class="profile-form">
+      <div class="form-group">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" name="email" value="{{.Data.Email}}" required
+          placeholder="votre@email.com" class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label for="image">Photo de profil</label>
+        <input type="file" id="image" name="image" accept="image/*" class="form-input">
+        {{if .Data.PhotoID}}
+        <small class="text-muted">Une photo existe déjà. Téléchargez-en une nouvelle pour la remplacer.</small>
+        {{end}}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{{end}}

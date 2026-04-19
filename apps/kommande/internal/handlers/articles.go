@@ -32,5 +32,6 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, "templates/index.html", "Catalogue", articles)
+	groups := groupByCategory(h.loadCategories(ctx), articles)
+	h.render(w, r, "templates/index.html", "Catalogue", groups)
 }

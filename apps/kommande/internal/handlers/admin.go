@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"kommande/internal/email"
 	"kommande/internal/models"
 )
 
@@ -72,8 +75,39 @@ func (h *Handler) AdminArticles(w http.ResponseWriter, r *http.Request) {
 	h.render(w, r, "templates/admin/articles.html", "Articles", articles)
 }
 
+type articleFormData struct {
+	Article    *models.Article
+	Categories []models.Category
+}
+
+func (h *Handler) loadCategories(ctx context.Context) []models.Category {
+	opts := options.Find().SetSort(bson.D{{Key: "name", Value: 1}})
+	cursor, err := h.db.Collection("categories").Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return nil
+	}
+	defer cursor.Close(ctx)
+	var cats []models.Category
+	cursor.All(ctx, &cats)
+	return cats
+}
+
+func parseCategoryIDs(r *http.Request) []bson.ObjectID {
+	var ids []bson.ObjectID
+	for _, raw := range r.Form["category_ids"] {
+		if id, err := bson.ObjectIDFromHex(raw); err == nil {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
 func (h *Handler) AdminNewArticle(w http.ResponseWriter, r *http.Request) {
-	h.render(w, r, "templates/admin/article-form.html", "Nouvel article", nil)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	h.render(w, r, "templates/admin/article-form.html", "Nouvel article", articleFormData{
+		Categories: h.loadCategories(ctx),
+	})
 }
 
 func (h *Handler) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
@@ -103,11 +137,11 @@ func (h *Handler) AdminCreateArticle(w http.ResponseWriter, r *http.Request) {
 		Description: description,
 		Unit:        unit,
 		Available:   available,
+		CategoryIDs: parseCategoryIDs(r),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
 
-	// Handle image upload
 	imageID, err := h.uploadImage(ctx, r)
 	if err == nil {
 		article.ImageID = &imageID
@@ -139,7 +173,10 @@ func (h *Handler) AdminEditArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, "templates/admin/article-form.html", "Modifier "+article.Name, &article)
+	h.render(w, r, "templates/admin/article-form.html", "Modifier "+article.Name, articleFormData{
+		Article:    &article,
+		Categories: h.loadCategories(ctx),
+	})
 }
 
 func (h *Handler) AdminUpdateArticle(w http.ResponseWriter, r *http.Request) {
@@ -170,14 +207,14 @@ func (h *Handler) AdminUpdateArticle(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	update := bson.M{
-		"name":        name,
-		"description": description,
-		"unit":        unit,
-		"available":   available,
-		"updated_at":  time.Now(),
+		"name":         name,
+		"description":  description,
+		"unit":         unit,
+		"available":    available,
+		"category_ids": parseCategoryIDs(r),
+		"updated_at":   time.Now(),
 	}
 
-	// Handle new image upload
 	imageID, err := h.uploadImage(ctx, r)
 	if err == nil {
 		update["image_id"] = imageID
@@ -280,6 +317,12 @@ func (h *Handler) AdminRespondOrder(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
+	var order models.Order
+	if err := h.db.Collection("orders").FindOne(ctx, bson.M{"_id": id}).Decode(&order); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
 	_, err = h.db.Collection("orders").UpdateOne(ctx,
 		bson.M{"_id": id},
 		bson.M{"$set": bson.M{
@@ -293,13 +336,36 @@ func (h *Handler) AdminRespondOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect back to the orders page for that date
+	if newStatus == "delivered" {
+		h.notifyClientDelivered(ctx, order, note)
+	}
+
 	date := r.FormValue("date")
 	if date == "" {
 		date = time.Now().Format("2006-01-02")
 	}
 	setFlash(w, "Commande mise à jour.", "success")
 	http.Redirect(w, r, "/admin/orders?date="+date, http.StatusSeeOther)
+}
+
+func (h *Handler) notifyClientDelivered(ctx context.Context, order models.Order, message string) {
+	var user models.User
+	if err := h.db.Collection("users").FindOne(ctx, bson.M{"username": order.Username}).Decode(&user); err != nil || user.Email == "" {
+		return
+	}
+
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "Bonjour %s,\n\nVotre commande du %s a été livrée.\n\n", order.Username, order.Date)
+	if message != "" {
+		fmt.Fprintf(&sb, "Message de l'équipe :\n%s\n\n", message)
+	}
+	sb.WriteString("Détail de votre commande :\n")
+	for _, item := range order.Items {
+		fmt.Fprintf(&sb, "  - %s : %s %s\n", item.ArticleName, formatQty(item.Quantity), item.Unit)
+	}
+	sb.WriteString("\nMerci de votre confiance !\n")
+
+	email.Send(h.cfg, user.Email, fmt.Sprintf("[Kommande] Votre commande du %s a été livrée", order.Date), sb.String())
 }
 
 // ─── Image upload helper ──────────────────────────────────────────────────────

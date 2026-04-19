@@ -17,6 +17,7 @@ type Claims struct {
 	UserID   string `json:"user_id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	PhotoID  string `json:"photo_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -64,11 +65,18 @@ func extractUser(r *http.Request, jwtSecret string) (*models.User, error) {
 	}
 
 	id, _ := bson.ObjectIDFromHex(claims.UserID)
-	return &models.User{
+	user := &models.User{
 		ID:       id,
 		Username: claims.Username,
 		Role:     claims.Role,
-	}, nil
+	}
+	if claims.PhotoID != "" {
+		pid, err := bson.ObjectIDFromHex(claims.PhotoID)
+		if err == nil {
+			user.PhotoID = &pid
+		}
+	}
+	return user, nil
 }
 
 func clearAuthCookie(w http.ResponseWriter) {

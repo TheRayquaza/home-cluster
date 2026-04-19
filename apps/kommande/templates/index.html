@@ -17,26 +17,35 @@
     <p>Aucun article disponible pour le moment.</p>
   </div>
   {{else}}
-  <div class="articles-grid">
-    {{range .Data}}
-    <div class="article-card">
-      <div class="article-image">
-        {{if .ImageID}}
-        <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
-        {{else}}
-        <div class="article-placeholder">{{initial .Name}}</div>
-        {{end}}
-      </div>
-      <div class="article-body">
-        <h3 class="article-name">{{.Name}}</h3>
-        <span class="article-unit">par {{.Unit}}</span>
-        {{if .Description}}
-        <p class="article-desc">{{.Description}}</p>
-        {{end}}
-      </div>
-    </div>
+  {{range .Data}}
+  <div class="category-section">
+    {{if .Category}}
+    <h2 class="category-title">{{.Category.Name}}</h2>
+    {{else}}
+    <h2 class="category-title">Autres</h2>
     {{end}}
+    <div class="articles-grid">
+      {{range .Articles}}
+      <div class="article-card">
+        <div class="article-image">
+          {{if .ImageID}}
+          <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
+          {{else}}
+          <div class="article-placeholder">{{initial .Name}}</div>
+          {{end}}
+        </div>
+        <div class="article-body">
+          <h3 class="article-name">{{.Name}}</h3>
+          <span class="article-unit">par {{.Unit}}</span>
+          {{if .Description}}
+          <p class="article-desc">{{.Description}}</p>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
   </div>
+  {{end}}
   {{end}}
 </div>
 {{end}}

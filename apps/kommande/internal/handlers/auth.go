@@ -159,6 +159,9 @@ func (h *Handler) generateJWT(user *models.User) (string, error) {
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
+	if user.PhotoID != nil {
+		claims.PhotoID = user.PhotoID.Hex()
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(h.cfg.JWTSecret))
 	if err != nil {

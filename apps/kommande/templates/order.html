@@ -3,79 +3,99 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Commander</h1>
-      <p class="page-subtitle">{{.Data.Today}}</p>
+      <p class="page-subtitle">Choisissez une date et vos articles</p>
     </div>
   </div>
 
-  {{if .Data.TodayOrder}}
-    {{if ne .Data.TodayOrder.Status "pending"}}
-    <div class="order-status-banner status-{{.Data.TodayOrder.Status}}">
-      <strong>Votre commande est {{statusLabel .Data.TodayOrder.Status}}.</strong>
-      {{if .Data.TodayOrder.AdminNote}}
-      <span>Note de l'admin : {{.Data.TodayOrder.AdminNote}}</span>
+  <div class="date-filter" style="margin-bottom:20px;">
+    <label for="order-date-picker">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Date de la commande
+    </label>
+    <input type="date" id="order-date-picker" value="{{.Data.Date}}" min="{{.Data.Today}}"
+      onchange="window.location.href='/order?date='+this.value">
+  </div>
+
+  {{if .Data.Order}}
+    {{if ne .Data.Order.Status "pending"}}
+    <div class="order-status-banner status-{{.Data.Order.Status}}">
+      <strong>Votre commande est {{statusLabel .Data.Order.Status}}.</strong>
+      {{if .Data.Order.AdminNote}}
+      <span>Note de l'admin : {{.Data.Order.AdminNote}}</span>
       {{end}}
       <span>Contactez l'administrateur pour toute modification.</span>
     </div>
     {{else}}
     <div class="order-status-banner status-pending">
-      <strong>Vous avez déjà une commande en attente.</strong>
+      <strong>Commande en attente pour le {{.Data.Date}}.</strong>
       Modifiez les quantités ci-dessous et validez à nouveau pour mettre à jour.
     </div>
     {{end}}
   {{end}}
 
-  {{if not .Data.Articles}}
+  {{if not .Data.Groups}}
   <div class="empty-state">
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
     <p>Aucun article disponible.</p>
   </div>
   {{else}}
 
-  {{$order := .Data.TodayOrder}}
+  {{$order := .Data.Order}}
   {{$editable := true}}
   {{if $order}}
     {{if ne $order.Status "pending"}}{{$editable = false}}{{end}}
   {{end}}
 
   <form action="/order" method="POST" id="order-form">
-    <div class="order-grid">
-      {{range .Data.Articles}}
-      <div class="order-card">
-        <div class="article-image">
-          {{if .ImageID}}
-          <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
-          {{else}}
-          <div class="article-placeholder">{{initial .Name}}</div>
-          {{end}}
-        </div>
-        <div class="order-card-body">
-          <h3 class="article-name">{{.Name}}</h3>
-          <span class="article-unit">{{.Unit}}</span>
-          {{if .Description}}
-          <p class="article-desc">{{.Description}}</p>
-          {{end}}
-          <div class="qty-control">
-            {{if $editable}}
-            <button type="button" class="qty-btn qty-minus" aria-label="Diminuer">−</button>
-            <input
-              type="number"
-              name="qty_{{.ID.Hex}}"
-              class="qty-input"
-              value="{{quantityFor $order .ID}}"
-              min="0"
-              step="{{unitStep .Unit}}"
-              aria-label="Quantité de {{.Name}}"
-            >
-            <span class="qty-unit">{{.Unit}}</span>
-            <button type="button" class="qty-btn qty-plus" aria-label="Augmenter">+</button>
+    <input type="hidden" name="date" value="{{.Data.Date}}">
+
+    {{range .Data.Groups}}
+    <div class="category-section">
+      {{if .Category}}
+      <h2 class="category-title">{{.Category.Name}}</h2>
+      {{else}}
+      <h2 class="category-title">Autres</h2>
+      {{end}}
+      <div class="order-grid">
+        {{range .Articles}}
+        <div class="order-card">
+          <div class="article-image">
+            {{if .ImageID}}
+            <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}" loading="lazy">
             {{else}}
-            <span class="qty-static">{{quantityFor $order .ID}} {{.Unit}}</span>
+            <div class="article-placeholder">{{initial .Name}}</div>
             {{end}}
           </div>
+          <div class="order-card-body">
+            <h3 class="article-name">{{.Name}}</h3>
+            <span class="article-unit">{{.Unit}}</span>
+            {{if .Description}}
+            <p class="article-desc">{{.Description}}</p>
+            {{end}}
+            <div class="qty-control">
+              {{if $editable}}
+              <button type="button" class="qty-btn qty-minus" aria-label="Diminuer">−</button>
+              <input
+                type="number"
+                name="qty_{{.ID.Hex}}"
+                class="qty-input"
+                value="{{quantityFor $order .ID}}"
+                min="0"
+                step="{{unitStep .Unit}}"
+                aria-label="Quantité de {{.Name}}"
+              >
+              <span class="qty-unit">{{.Unit}}</span>
+              <button type="button" class="qty-btn qty-plus" aria-label="Augmenter">+</button>
+              {{else}}
+              <span class="qty-static">{{quantityFor $order .ID}} {{.Unit}}</span>
+              {{end}}
+            </div>
+          </div>
         </div>
+        {{end}}
       </div>
-      {{end}}
     </div>
+    {{end}}
 
     {{if $editable}}
     <div class="order-footer" id="order-footer">

@@ -60,7 +60,7 @@
       <form action="/admin/orders/{{.ID.Hex}}/respond" method="POST" class="respond-form">
         <input type="hidden" name="date" value="{{$.Data.Date}}">
         <div class="form-group">
-          <label for="note-{{.ID.Hex}}">Note pour l'utilisateur (optionnel)</label>
+          <label for="note-{{.ID.Hex}}">Message à inclure dans l'email de livraison (optionnel)</label>
           <input type="text" id="note-{{.ID.Hex}}" name="note" value="{{.AdminNote}}" placeholder="Ajouter une note...">
         </div>
         <div class="respond-actions">

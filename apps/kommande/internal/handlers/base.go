@@ -34,6 +34,14 @@ func New(db *mongo.Database, files embed.FS, cfg *config.Config) *Handler {
 		"quantityFor": quantityFor,
 		"imageURL":    imageURL,
 		"unitStep":    unitStep,
+		"containsID": func(ids []bson.ObjectID, id bson.ObjectID) bool {
+			for _, oid := range ids {
+				if oid == id {
+					return true
+				}
+			}
+			return false
+		},
 	}
 	return h
 }
@@ -171,6 +179,44 @@ func unitStep(unit string) string {
 	default:
 		return "1"
 	}
+}
+
+// groupByCategory organises articles into category groups (alphabetical).
+// Articles with no category appear in a trailing "Autres" group.
+func groupByCategory(cats []models.Category, articles []models.Article) []models.ArticleGroup {
+	catIndex := make(map[bson.ObjectID]int, len(cats))
+	groups := make([]models.ArticleGroup, len(cats))
+	for i, c := range cats {
+		c2 := c
+		groups[i] = models.ArticleGroup{Category: &c2}
+		catIndex[c.ID] = i
+	}
+
+	var uncategorised []models.Article
+	for _, a := range articles {
+		placed := false
+		for _, cid := range a.CategoryIDs {
+			if idx, ok := catIndex[cid]; ok {
+				groups[idx].Articles = append(groups[idx].Articles, a)
+				placed = true
+			}
+		}
+		if !placed {
+			uncategorised = append(uncategorised, a)
+		}
+	}
+
+	// Remove empty category groups
+	var result []models.ArticleGroup
+	for _, g := range groups {
+		if len(g.Articles) > 0 {
+			result = append(result, g)
+		}
+	}
+	if len(uncategorised) > 0 {
+		result = append(result, models.ArticleGroup{Articles: uncategorised})
+	}
+	return result
 }
 
 func quantityFor(order *models.Order, articleID bson.ObjectID) string {
