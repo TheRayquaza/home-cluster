@@ -79,6 +79,8 @@ func main() {
 	mux.Handle("POST /admin/articles/{id}/delete", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminDeleteArticle)))
 	mux.Handle("GET /admin/categories", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminCategories)))
 	mux.Handle("POST /admin/categories", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminCreateCategory)))
+	mux.Handle("GET /admin/categories/{id}/edit", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminEditCategory)))
+	mux.Handle("POST /admin/categories/{id}", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminUpdateCategory)))
 	mux.Handle("POST /admin/categories/{id}/delete", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminDeleteCategory)))
 	mux.Handle("GET /admin/orders", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminOrders)))
 	mux.Handle("POST /admin/orders/{id}/respond", middleware.RequireAdmin(cfg.JWTSecret, http.HandlerFunc(h.AdminRespondOrder)))

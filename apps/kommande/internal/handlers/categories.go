@@ -66,6 +66,66 @@ func (h *Handler) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/admin/categories", http.StatusSeeOther)
 }
 
+func (h *Handler) AdminEditCategory(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	var cat models.Category
+	if err := h.db.Collection("categories").FindOne(ctx, bson.M{"_id": id}).Decode(&cat); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	h.render(w, r, "templates/admin/category-form.html", "Modifier "+cat.Name, &cat)
+}
+
+func (h *Handler) AdminUpdateCategory(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	name := r.FormValue("name")
+	if name == "" {
+		setFlash(w, "Le nom est obligatoire.", "danger")
+		http.Redirect(w, r, "/admin/categories/"+idStr+"/edit", http.StatusSeeOther)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+
+	update := bson.M{"name": name}
+	if imageID, err := h.uploadImage(ctx, r); err == nil {
+		update["image_id"] = imageID
+	}
+
+	if _, err := h.db.Collection("categories").UpdateOne(ctx,
+		bson.M{"_id": id},
+		bson.M{"$set": update},
+	); err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	setFlash(w, "Catégorie mise à jour.", "success")
+	http.Redirect(w, r, "/admin/categories", http.StatusSeeOther)
+}
+
 func (h *Handler) AdminDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := bson.ObjectIDFromHex(idStr)

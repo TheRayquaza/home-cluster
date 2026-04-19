@@ -798,7 +798,13 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--primary);
 }
 .category-admin-info { padding: 10px 12px; flex: 1; font-size: 0.9rem; }
-.category-admin-actions { padding: 8px 12px 12px; border-top: 1px solid #F5F5F5; }
+.category-admin-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid #F5F5F5;
+  flex-wrap: wrap;
+}
 
 /* ─── Item thumbnails in order lists ─────────────────────────────────────────── */
 .item-thumb {
