@@ -1,3 +1,37 @@
+// ─── Mobile nav hamburger ──────────────────────────────────────────────────────
+(function () {
+  var toggle = document.getElementById('nav-toggle');
+  var nav    = document.getElementById('main-nav');
+  if (!toggle || !nav) return;
+
+  toggle.addEventListener('click', function (e) {
+    e.stopPropagation();
+    var open = nav.classList.toggle('nav-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.querySelector('.icon-menu').style.display  = open ? 'none'  : '';
+    toggle.querySelector('.icon-close').style.display = open ? ''      : 'none';
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', function (e) {
+    if (nav.classList.contains('nav-open') && !nav.contains(e.target) && e.target !== toggle) {
+      nav.classList.remove('nav-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.querySelector('.icon-menu').style.display  = '';
+      toggle.querySelector('.icon-close').style.display = 'none';
+    }
+  });
+
+  // Close on nav link click (mobile navigation)
+  nav.querySelectorAll('a, button[type="submit"]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      nav.classList.remove('nav-open');
+      toggle.querySelector('.icon-menu').style.display  = '';
+      toggle.querySelector('.icon-close').style.display = 'none';
+    });
+  });
+})();
+
 // ─── Quantity controls ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
   // Qty +/- buttons
@@ -28,8 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Highlight cards with qty > 0 and update footer summary
-  var form = document.getElementById('order-form');
-  var footer = document.getElementById('order-footer');
+  var form    = document.getElementById('order-form');
   var summary = document.getElementById('order-summary');
 
   function updateSummary() {

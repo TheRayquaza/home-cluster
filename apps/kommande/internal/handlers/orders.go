@@ -118,6 +118,7 @@ func (h *Handler) SubmitOrder(w http.ResponseWriter, r *http.Request) {
 			ArticleName: a.Name,
 			Quantity:    qty,
 			Unit:        a.Unit,
+			ImageID:     a.ImageID,
 		})
 	}
 

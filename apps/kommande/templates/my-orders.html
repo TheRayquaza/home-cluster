@@ -40,6 +40,11 @@
       <ul class="order-items-list">
         {{range .Items}}
         <li>
+          {{if .ImageID}}
+          <img src="/images/{{imageURL .ImageID}}" alt="{{.ArticleName}}" class="item-thumb">
+          {{else}}
+          <span class="item-thumb-placeholder">{{initial .ArticleName}}</span>
+          {{end}}
           <span class="item-name">{{.ArticleName}}</span>
           <span class="item-qty">{{formatQty .Quantity}} {{.Unit}}</span>
         </li>

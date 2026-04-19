@@ -7,10 +7,11 @@ import (
 )
 
 type OrderItem struct {
-	ArticleID   bson.ObjectID `bson:"article_id"`
-	ArticleName string        `bson:"article_name"`
-	Quantity    float64       `bson:"quantity"`
-	Unit        string        `bson:"unit"`
+	ArticleID   bson.ObjectID  `bson:"article_id"`
+	ArticleName string         `bson:"article_name"`
+	Quantity    float64        `bson:"quantity"`
+	Unit        string         `bson:"unit"`
+	ImageID     *bson.ObjectID `bson:"image_id,omitempty"`
 }
 
 type Order struct {

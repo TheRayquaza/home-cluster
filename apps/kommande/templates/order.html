@@ -52,7 +52,12 @@
     {{range .Data.Groups}}
     <div class="category-section">
       {{if .Category}}
-      <h2 class="category-title">{{.Category.Name}}</h2>
+      <div class="category-heading">
+        {{if .Category.ImageID}}
+        <img src="/images/{{imageURL .Category.ImageID}}" alt="{{.Category.Name}}" class="category-heading-img">
+        {{end}}
+        <h2 class="category-title">{{.Category.Name}}</h2>
+      </div>
       {{else}}
       <h2 class="category-title">Autres</h2>
       {{end}}

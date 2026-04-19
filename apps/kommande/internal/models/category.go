@@ -7,7 +7,8 @@ import (
 )
 
 type Category struct {
-	ID        bson.ObjectID `bson:"_id,omitempty"`
-	Name      string        `bson:"name"`
-	CreatedAt time.Time     `bson:"created_at"`
+	ID        bson.ObjectID  `bson:"_id,omitempty"`
+	Name      string         `bson:"name"`
+	ImageID   *bson.ObjectID `bson:"image_id,omitempty"`
+	CreatedAt time.Time      `bson:"created_at"`
 }

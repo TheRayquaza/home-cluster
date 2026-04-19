@@ -3,7 +3,7 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Catégories</h1>
-      <p class="page-subtitle">Gérez les groupes d'articles</p>
+      <p class="page-subtitle">Groupes d'articles affichés dans le catalogue</p>
     </div>
     <a href="/admin" class="btn btn-secondary">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
@@ -11,17 +11,23 @@
     </a>
   </div>
 
-  <div class="card" style="margin-bottom:24px;padding:24px;">
-    <h2 class="section-title" style="margin-bottom:16px;">Nouvelle catégorie</h2>
-    <form action="/admin/categories" method="POST" class="inline-form">
-      <div style="display:flex;gap:12px;align-items:flex-end;">
-        <div class="form-group" style="flex:1;margin:0;">
-          <label for="cat-name">Nom</label>
-          <input type="text" id="cat-name" name="name" class="form-input" placeholder="Ex: Boissons, Snacks…" required>
+  <div class="form-card" style="margin-bottom:28px;">
+    <h2 class="section-title">Nouvelle catégorie</h2>
+    <form action="/admin/categories" method="POST" enctype="multipart/form-data" class="category-create-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="cat-name">Nom <span class="required">*</span></label>
+          <input type="text" id="cat-name" name="name" class="form-input" placeholder="Ex: Boissons, Snacks…" required autofocus>
         </div>
+        <div class="form-group">
+          <label for="cat-image">Image (optionnel)</label>
+          <input type="file" id="cat-image" name="image" accept="image/*" class="form-input">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:12px;">
         <button type="submit" class="btn btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Créer
+          Créer la catégorie
         </button>
       </div>
     </form>
@@ -30,33 +36,32 @@
   {{if not .Data}}
   <div class="empty-state">
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-    <p>Aucune catégorie créée.</p>
+    <p>Aucune catégorie. Créez-en une ci-dessus.</p>
   </div>
   {{else}}
-  <div class="card">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Nom</th>
-          <th style="width:100px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {{range .Data}}
-        <tr>
-          <td><strong>{{.Name}}</strong></td>
-          <td>
-            <form action="/admin/categories/{{.ID.Hex}}/delete" method="POST" onsubmit="return confirm('Supprimer cette catégorie ?')">
-              <button type="submit" class="btn btn-sm btn-danger">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                Supprimer
-              </button>
-            </form>
-          </td>
-        </tr>
+  <div class="categories-admin-grid">
+    {{range .Data}}
+    <div class="category-admin-card">
+      <div class="category-admin-img">
+        {{if .ImageID}}
+        <img src="/images/{{imageURL .ImageID}}" alt="{{.Name}}">
+        {{else}}
+        <div class="category-admin-placeholder">{{initial .Name}}</div>
         {{end}}
-      </tbody>
-    </table>
+      </div>
+      <div class="category-admin-info">
+        <strong>{{.Name}}</strong>
+      </div>
+      <div class="category-admin-actions">
+        <form action="/admin/categories/{{.ID.Hex}}/delete" method="POST" onsubmit="return confirm('Supprimer «{{.Name}}» ? Les articles ne seront pas supprimés.')">
+          <button type="submit" class="btn btn-sm btn-danger">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Supprimer
+          </button>
+        </form>
+      </div>
+    </div>
+    {{end}}
   </div>
   {{end}}
 </div>

@@ -33,6 +33,11 @@ func (h *Handler) AdminCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
 	name := r.FormValue("name")
 	if name == "" {
 		setFlash(w, "Le nom est obligatoire.", "danger")
@@ -40,15 +45,19 @@ func (h *Handler) AdminCreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
 
-	_, err := h.db.Collection("categories").InsertOne(ctx, models.Category{
+	cat := models.Category{
 		ID:        bson.NewObjectID(),
 		Name:      name,
 		CreatedAt: time.Now(),
-	})
-	if err != nil {
+	}
+	if imageID, err := h.uploadImage(ctx, r); err == nil {
+		cat.ImageID = &imageID
+	}
+
+	if _, err := h.db.Collection("categories").InsertOne(ctx, cat); err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
