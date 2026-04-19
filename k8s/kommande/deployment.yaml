@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: kommande
-          image: ghcr.io/therayquaza/home-cluster/kommande:latest
+          image: ghcr.io/therayquaza/home-cluster/kommande:0.2.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
