@@ -136,3 +136,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: kommande
+
+    - name: games-https
+      port: 443
+      protocol: HTTPS
+      hostname: "games.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: games-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: games
