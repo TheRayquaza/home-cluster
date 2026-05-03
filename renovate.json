@@ -100,7 +100,7 @@
       "description": "Auto-merge Go and npm patch updates",
       "matchUpdateTypes": ["patch"],
       "matchManagers": ["gomod", "npm"],
-      "automerge": true,
+      "automerge": false,
       "automergeType": "pr"
     },
     {
