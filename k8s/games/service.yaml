@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: games-backend-service
+  namespace: games
+spec:
+  selector:
+    app: games-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: games-frontend-service
+  namespace: games
+spec:
+  selector:
+    app: games-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

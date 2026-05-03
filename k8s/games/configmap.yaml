@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: games-config
+  namespace: games
+data:
+  DB_URL: "postgres://games:games@localhost:5432/games?sslmode=disable"
+  PORT: "8080"
+  ALLOWED_ORIGIN: "https://games.internal.rayq.app"

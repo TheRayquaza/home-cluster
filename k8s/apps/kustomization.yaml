@@ -15,3 +15,4 @@ resources:
   - uptime-kuma.yaml
   - pix.yaml
   - kommande.yaml
+  - games.yaml

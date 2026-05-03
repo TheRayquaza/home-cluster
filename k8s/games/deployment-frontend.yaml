@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: games-frontend
+  namespace: games
+  labels:
+    app: games-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: games-frontend
+  template:
+    metadata:
+      labels:
+        app: games-frontend
+    spec:
+      imagePullSecrets:
+        - name: ghcr
+      containers:
+        - name: frontend
+          image: ghcr.io/therayquaza/home-cluster/games-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 30
