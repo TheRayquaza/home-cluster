@@ -1,0 +1,118 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 9am on monday"],
+  "labels": ["dependencies"],
+  "dependencyDashboardTitle": "Renovate Dependency Dashboard",
+
+  "argocd": {
+    "fileMatch": ["(^|/)k8s/apps/.+\\.yaml$"]
+  },
+
+  "dockerfile": {
+    "fileMatch": ["(^|/)apps/.+/Dockerfile$"]
+  },
+
+  "kubernetes": {
+    "fileMatch": ["(^|/)k8s/.+\\.yaml$"]
+  },
+
+  "docker-compose": {
+    "fileMatch": ["(^|/)apps/.+/docker-compose\\.ya?ml$"]
+  },
+
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "hashicorp/vault image pinned inside ArgoCD helm values string",
+      "fileMatch": ["(^|/)k8s/apps/vault\\.yaml$"],
+      "matchStrings": [
+        "repository: (?<depName>[^\\n]+)\\n\\s+tag: \"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "rancher/local-path-provisioner image pinned inside ArgoCD helm values string",
+      "fileMatch": ["(^|/)k8s/apps/local-path-provisioner\\.yaml$"],
+      "matchStrings": [
+        "repository: (?<depName>rancher/local-path-provisioner)\\n\\s+tag: (?<currentValue>[^\\n]+)",
+        "repository: (?<depName>busybox)\\n\\s+tag: \"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "docker"
+    }
+  ],
+
+  "packageRules": [
+    {
+      "description": "Group all helm chart updates into one PR",
+      "matchManagers": ["argocd"],
+      "groupName": "helm charts",
+      "labels": ["dependencies", "helm"]
+    },
+    {
+      "description": "Infra charts on slower cadence - monthly, require manual merge",
+      "matchPackageNames": [
+        "cilium",
+        "cert-manager",
+        "external-secrets",
+        "vault",
+        "local-path-provisioner",
+        "kata-deploy"
+      ],
+      "groupName": "infra helm charts",
+      "labels": ["dependencies", "helm", "infra"],
+      "schedule": ["before 9am on the first day of the month"],
+      "automerge": false
+    },
+    {
+      "description": "kommande Go deps",
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["apps/kommande/**"],
+      "groupName": "kommande go deps",
+      "labels": ["dependencies", "go", "kommande"]
+    },
+    {
+      "description": "games backend Go deps",
+      "matchManagers": ["gomod"],
+      "matchFileNames": ["apps/games/backend/**"],
+      "groupName": "games-backend go deps",
+      "labels": ["dependencies", "go", "games"]
+    },
+    {
+      "description": "games frontend npm deps",
+      "matchManagers": ["npm"],
+      "groupName": "games-frontend npm deps",
+      "labels": ["dependencies", "npm", "games"]
+    },
+    {
+      "description": "Docker base images grouped per app",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker base images",
+      "labels": ["dependencies", "docker"]
+    },
+    {
+      "description": "Auto-merge Go and npm patch updates",
+      "matchUpdateTypes": ["patch"],
+      "matchManagers": ["gomod", "npm"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Pin digest for golang and node base images for reproducibility",
+      "matchPackageNames": ["golang", "node"],
+      "matchManagers": ["dockerfile"],
+      "pinDigests": true
+    },
+    {
+      "description": "nginx:alpine uses a floating tag - disable digest pinning to avoid noise",
+      "matchPackageNames": ["nginx"],
+      "pinDigests": false
+    }
+  ]
+}

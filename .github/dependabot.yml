@@ -1,0 +1,204 @@
+version: 2
+
+# NOTE: Dependabot cannot update Helm chart versions in ArgoCD Application
+# manifests (targetRevision field). For that, use Renovate with the argocd
+# manager instead. This config covers: Dockerfiles, Go modules, npm, and
+# container images referenced directly in k8s manifests.
+
+updates:
+
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+
+  # ── Docker images ─────────────────────────────────────────────────────────
+
+  - package-ecosystem: "docker"
+    directory: "/apps/kommande"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "kommande"
+    commit-message:
+      prefix: "docker(kommande)"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/pix"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "pix"
+    commit-message:
+      prefix: "docker(pix)"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/games/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "games"
+    commit-message:
+      prefix: "docker(games-backend)"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/games/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "games"
+    commit-message:
+      prefix: "docker(games-frontend)"
+
+  # ── Kubernetes manifest image tags ────────────────────────────────────────
+  # Dependabot scans `image:` fields in .yaml files within these directories.
+  # Covers images like hashicorp/vault, rancher/local-path-provisioner, etc.
+  # Private images (ghcr.io/therayquaza/...) require registry auth configured
+  # in GitHub repo settings under Dependabot secrets.
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/vault"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+      - "vault"
+    commit-message:
+      prefix: "k8s(vault)"
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/immich"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+      - "immich"
+    commit-message:
+      prefix: "k8s(immich)"
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/uptime-kuma"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+    commit-message:
+      prefix: "k8s(uptime-kuma)"
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/pix"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+    commit-message:
+      prefix: "k8s(pix)"
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/kommande"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+    commit-message:
+      prefix: "k8s(kommande)"
+
+  - package-ecosystem: "docker"
+    directory: "/k8s/argocd"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "k8s"
+      - "argocd"
+    commit-message:
+      prefix: "k8s(argocd)"
+
+  # ── Go modules ────────────────────────────────────────────────────────────
+
+  - package-ecosystem: "gomod"
+    directory: "/apps/kommande"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    labels:
+      - "dependencies"
+      - "go"
+      - "kommande"
+    commit-message:
+      prefix: "go(kommande)"
+    groups:
+      kommande-deps:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gomod"
+    directory: "/apps/games/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    labels:
+      - "dependencies"
+      - "go"
+      - "games"
+    commit-message:
+      prefix: "go(games-backend)"
+    groups:
+      games-backend-deps:
+        patterns:
+          - "*"
+
+  # ── npm ───────────────────────────────────────────────────────────────────
+
+  - package-ecosystem: "npm"
+    directory: "/apps/games/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "games"
+    commit-message:
+      prefix: "npm(games-frontend)"
+    groups:
+      games-frontend-deps:
+        patterns:
+          - "*"
+    versioning-strategy: increase
