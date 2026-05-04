@@ -13,7 +13,7 @@ services:
         condition: service_healthy
 
   mongo:
-    image: mongo:8.2.6-rc0-noble
+    image: mongo:8.2.7-rc0-noble
     volumes:
       - mongo-data:/data/db
     healthcheck:
