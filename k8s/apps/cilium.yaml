@@ -56,9 +56,10 @@ spec:
             masquerade: true
 
           # -------------------------------------------------------------------
-          # Devices — exclude wg0 so Cilium does not attach BPF to WireGuard
+          # Host firewall — enables CiliumClusterwideNetworkPolicy for nodes
           # -------------------------------------------------------------------
-          devices: "eno1"
+          hostFirewall:
+            enabled: true
 
           # -------------------------------------------------------------------
           # Metrics & monitoring

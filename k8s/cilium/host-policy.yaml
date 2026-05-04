@@ -1,0 +1,14 @@
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: host-allow-wireguard-ssh
+spec:
+  nodeSelector:
+    matchLabels: {}
+  ingress:
+  - fromCIDR:
+    - "10.20.0.0/24"
+    toPorts:
+    - ports:
+      - port: "22001"
+        protocol: TCP
