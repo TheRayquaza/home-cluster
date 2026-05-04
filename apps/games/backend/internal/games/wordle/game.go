@@ -20,18 +20,44 @@ func (g *Game) Name() string   { return "Wordle" }
 func (g *Game) RealTime() bool { return false }
 
 func (g *Game) Init(seed int64) State {
+	return g.InitWithConfig(seed, nil)
+}
+
+// InitWithConfig implements ConfigurableGame. Accepts "word_length" (int, 3–8, default 5).
+func (g *Game) InitWithConfig(seed int64, config map[string]any) State {
+	wordLen := 5
+	if config != nil {
+		if wl, ok := config["word_length"]; ok {
+			if n := toInt(wl); n >= 3 && n <= 8 {
+				wordLen = n
+			}
+		}
+	}
+
+	// Filter words to the desired length
+	var filtered []string
+	for _, w := range Words {
+		if len(w) == wordLen {
+			filtered = append(filtered, w)
+		}
+	}
+	if len(filtered) == 0 {
+		filtered = Words // fallback
+	}
+
 	rng := rand.New(rand.NewSource(seed))
-	word := Words[rng.Intn(len(Words))]
+	word := filtered[rng.Intn(len(filtered))]
 
 	return State{
 		// secret is stored server-side in state but MUST be stripped before sending to clients
-		"secret":    word,
-		"guesses":   []any{[]any{}, []any{}},
-		"hints":     []any{[]any{}, []any{}},
-		"solved":    []bool{false, false},
-		"attempts":  []int{0, 0},
-		"game_over": false,
-		"winner":    -2,
+		"secret":      word,
+		"word_length": wordLen,
+		"guesses":     []any{[]any{}, []any{}},
+		"hints":       []any{[]any{}, []any{}},
+		"solved":      []bool{false, false},
+		"attempts":    []int{0, 0},
+		"game_over":   false,
+		"winner":      -2,
 	}
 }
 
@@ -49,21 +75,23 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 		return state, errors.New("'guess' must be a string")
 	}
 	guess = strings.ToUpper(strings.TrimSpace(guess))
-	if len(guess) != 5 {
-		return state, fmt.Errorf("guess must be exactly 5 letters, got %d", len(guess))
+
+	secret, _ := state["secret"].(string)
+	wordLen := len(secret)
+	if len(guess) != wordLen {
+		return state, fmt.Errorf("guess must be exactly %d letters, got %d", wordLen, len(guess))
 	}
 
 	solved := cloneBools(state["solved"])
+	attempts := cloneInts(state["attempts"])
+
 	if solved[playerIdx] {
 		return state, errors.New("you have already solved the puzzle")
 	}
-
-	attempts := cloneInts(state["attempts"])
 	if attempts[playerIdx] >= maxGuesses {
 		return state, errors.New("no guesses remaining")
 	}
 
-	secret, _ := state["secret"].(string)
 	hint := computeHint(secret, guess)
 
 	guesses := cloneGuessMatrix(state["guesses"])
@@ -77,21 +105,30 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 		solved[playerIdx] = true
 	}
 
-	newState := State{
-		"secret":    secret,
-		"guesses":   guesses,
-		"hints":     hints,
-		"solved":    solved,
-		"attempts":  attempts,
-		"game_over": false,
-		"winner":    -2,
+	wordLength := toInt(state["word_length"])
+	if wordLength == 0 {
+		wordLength = wordLen
 	}
 
-	// Check if game is over
-	winner := computeWinner(solved, attempts)
-	if winner != -2 {
+	newState := State{
+		"secret":      secret,
+		"word_length": wordLength,
+		"guesses":     guesses,
+		"hints":       hints,
+		"solved":      solved,
+		"attempts":    attempts,
+		"game_over":   false,
+		"winner":      -2,
+	}
+
+	// Both players must be done before game ends
+	p0done := solved[0] || attempts[0] >= maxGuesses
+	p1done := solved[1] || attempts[1] >= maxGuesses
+	if p0done && p1done {
+		winner := computeWinner(solved, attempts, hints)
 		newState["winner"] = winner
 		newState["game_over"] = true
+		newState["revealed_word"] = secret
 	}
 
 	return newState, nil
@@ -99,11 +136,12 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 
 // computeHint returns per-letter hints: 2=green, 1=yellow, 0=gray.
 func computeHint(secret, guess string) []int {
-	hint := make([]int, 5)
-	used := make([]bool, 5)
+	n := len(secret)
+	hint := make([]int, n)
+	used := make([]bool, n)
 
 	// First pass: find greens
-	for i := 0; i < 5; i++ {
+	for i := 0; i < n; i++ {
 		if guess[i] == secret[i] {
 			hint[i] = 2
 			used[i] = true
@@ -111,11 +149,11 @@ func computeHint(secret, guess string) []int {
 	}
 
 	// Second pass: find yellows
-	for i := 0; i < 5; i++ {
+	for i := 0; i < n; i++ {
 		if hint[i] == 2 {
 			continue
 		}
-		for j := 0; j < 5; j++ {
+		for j := 0; j < n; j++ {
 			if !used[j] && guess[i] == secret[j] {
 				hint[i] = 1
 				used[j] = true
@@ -127,31 +165,30 @@ func computeHint(secret, guess string) []int {
 	return hint
 }
 
-// computeWinner returns -2=ongoing, -1=draw, 0=p1, 1=p2.
-func computeWinner(solved []bool, attempts []int) int {
-	p0done := solved[0] || attempts[0] >= maxGuesses
-	p1done := solved[1] || attempts[1] >= maxGuesses
-
-	if !p0done && !p1done {
-		return -2
+// countGreens counts total green hints (value==2) across all rows in a hint matrix player slice.
+func countGreens(playerHints [][]int) int {
+	total := 0
+	for _, row := range playerHints {
+		for _, v := range row {
+			if v == 2 {
+				total++
+			}
+		}
 	}
+	return total
+}
 
-	// If one solved, allow other to finish remaining guesses
-	if solved[0] && !p1done {
-		return -2 // wait for p2 to finish
-	}
-	if solved[1] && !p0done {
-		return -2 // wait for p1 to finish
-	}
-
-	// Both done: determine winner
+// computeWinner returns -1=draw, 0=p0 wins, 1=p1 wins.
+// Called only when both players are done.
+func computeWinner(solved []bool, attempts []int, hints [][][]int) int {
 	if solved[0] && solved[1] {
+		// Both solved: fewer attempts wins; tie → draw
 		if attempts[0] < attempts[1] {
 			return 0
 		} else if attempts[1] < attempts[0] {
 			return 1
 		}
-		return -1 // draw
+		return -1
 	}
 	if solved[0] {
 		return 0
@@ -159,7 +196,15 @@ func computeWinner(solved []bool, attempts []int) int {
 	if solved[1] {
 		return 1
 	}
-	return -1 // neither solved: draw
+	// Neither solved: most greens wins; tie → draw
+	g0 := countGreens(hints[0])
+	g1 := countGreens(hints[1])
+	if g0 > g1 {
+		return 0
+	} else if g1 > g0 {
+		return 1
+	}
+	return -1
 }
 
 func (g *Game) IsOver(state State) bool {
@@ -171,13 +216,25 @@ func (g *Game) Winner(state State) int {
 }
 
 // StripSecret returns a copy of the state without the secret word (safe to send to clients).
+// revealed_word is also stripped unless game_over is true.
 func StripSecret(state State) State {
 	out := make(State, len(state))
 	for k, v := range state {
 		out[k] = v
 	}
 	delete(out, "secret")
+	if !toBool(out["game_over"]) {
+		delete(out, "revealed_word")
+	}
 	return out
+}
+
+// toBool converts an interface value to bool.
+func toBool(v any) bool {
+	if b, ok := v.(bool); ok {
+		return b
+	}
+	return false
 }
 
 func cloneBools(v any) []bool {

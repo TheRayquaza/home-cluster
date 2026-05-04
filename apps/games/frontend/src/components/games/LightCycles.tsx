@@ -114,21 +114,48 @@ export function LightCycles({ state, playerIdx, onAction, gameOver }: GameProps)
     >{label}</button>
   )
 
+  const isCountdown = s?.phase === 'countdown'
+  const countdownValue = s?.countdown
+  const countdownLabel = countdownValue === 0 ? 'GO!' : String(countdownValue ?? '')
+
   return (
     <div className="game-container">
       <div className="game-info">
         <div style={{ color, fontWeight: 700 }}>
-          {alive[playerIdx] ? 'Alive' : 'Eliminated'}
+          {isCountdown ? 'Get ready!' : alive[playerIdx] ? 'Alive' : 'Eliminated'}
         </div>
         <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>
           {playerIdx === 0 ? 'WASD · or D-pad below' : 'Arrow keys · or D-pad below'}
         </div>
       </div>
 
-      <canvas
-        ref={canvasRef}
-        style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
-      />
+      <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+        <canvas
+          ref={canvasRef}
+          style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+        />
+        {isCountdown && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(10,10,20,0.65)',
+            pointerEvents: 'none',
+          }}>
+            <span style={{
+              fontSize: 96,
+              fontWeight: 900,
+              color,
+              textShadow: `0 0 32px ${color}, 0 0 8px ${color}`,
+              lineHeight: 1,
+            }}>
+              {countdownLabel}
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* D-pad */}
       <div style={{ display: 'grid', gridTemplateColumns: '56px 56px 56px', gap: 6, margin: '16px auto 0', width: 'fit-content' }}>

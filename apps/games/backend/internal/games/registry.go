@@ -1,6 +1,7 @@
 package games
 
 import (
+	"games/internal/games/battleships"
 	"games/internal/games/connect4"
 	"games/internal/games/lightcycles"
 	"games/internal/games/memory"
@@ -19,6 +20,7 @@ var Registry = map[string]Game{
 	"pong":        &pong.Game{},
 	"lightcycles": &lightcycles.Game{},
 	"wordle":      &wordle.Game{},
+	"battleships": &battleships.Game{},
 }
 
 // GameMeta holds display metadata for a game.
@@ -40,4 +42,5 @@ var Meta = map[string]GameMeta{
 	"pong":        {ID: "pong", Name: "Pong", Description: "Classic paddle battle. Ball speeds up after every hit. First to 7 wins.", Emoji: "🏓", Color: "#2196f3", RealTime: true},
 	"lightcycles": {ID: "lightcycles", Name: "Light Cycles", Description: "Leave a glowing trail. Force your opponent to crash into it.", Emoji: "⚡", Color: "#00bcd4", RealTime: true},
 	"wordle":      {ID: "wordle", Name: "Wordle Duel", Description: "Guess the same 5-letter word. First to solve wins!", Emoji: "🔤", Color: "#4caf50", RealTime: false},
+	"battleships": {ID: "battleships", Name: "Battleships", Description: "Place your fleet and sink the opponent's ships. Hit = shoot again!", Emoji: "⚓", Color: "#1565c0", RealTime: false},
 }

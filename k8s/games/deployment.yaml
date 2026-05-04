@@ -21,7 +21,7 @@ spec:
         - name: ghcr
       containers:
         - name: backend
-          image: ghcr.io/therayquaza/home-cluster/games-backend:latest@sha256:3d22540fdf0d06959dfa047ce3790dac2eb09a0f0b3295e012648703db8404f4
+          image: ghcr.io/therayquaza/home-cluster/games-backend:v0.1.0@sha256:f1279aa5d226d5ef27b5a41f0bfd15329c0289095d3c05f3f36bfe51a181216f
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

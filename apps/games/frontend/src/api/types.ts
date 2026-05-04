@@ -102,6 +102,8 @@ export interface LightCyclesState {
   players: Array<{ x: number; y: number; dir: string }>
   trails: number[][][]
   alive: boolean[]
+  phase?: string
+  countdown?: number
 }
 
 export interface WordleState {
@@ -110,6 +112,19 @@ export interface WordleState {
   solved: boolean[]
   attempts: number[]
   game_over: boolean
+  word_length?: number
+  revealed_word?: string
+}
+
+export interface BattleshipsState {
+  phase: 'placement' | 'combat'
+  boards: number[][]
+  shots: number[][]
+  ready: boolean[]
+  ships_left: number[]
+  turn: number
+  winner: number
+  ship_sizes: number[]
 }
 
 export type GameState =
@@ -120,6 +135,7 @@ export type GameState =
   | PongState
   | LightCyclesState
   | WordleState
+  | BattleshipsState
 
 export interface GameProps {
   state: GameState

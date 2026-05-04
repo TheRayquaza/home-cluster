@@ -317,14 +317,17 @@ func gameIDList() []string {
 func handleLeaderboard(database *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rows, err := database.Query(`
-			SELECT u.username, COUNT(*) AS wins
-			FROM game_sessions gs
-			JOIN users u ON (
-				(gs.winner_idx = 0 AND gs.player1_id = u.id) OR
-				(gs.winner_idx = 1 AND gs.player2_id = u.id)
-			)
+			SELECT
+				u.username,
+				COUNT(CASE WHEN (gs.winner_idx = 0 AND gs.player1_id = u.id)
+				             OR (gs.winner_idx = 1 AND gs.player2_id = u.id) THEN 1 END) AS wins,
+				COUNT(CASE WHEN (gs.winner_idx = 1 AND gs.player1_id = u.id)
+				             OR (gs.winner_idx = 0 AND gs.player2_id = u.id) THEN 1 END) AS losses,
+				COUNT(CASE WHEN gs.winner_idx = -1 THEN 1 END) AS draws
+			FROM users u
+			JOIN game_sessions gs ON (gs.player1_id = u.id OR gs.player2_id = u.id)
 			GROUP BY u.username
-			ORDER BY wins DESC
+			ORDER BY wins DESC, losses ASC
 			LIMIT 20
 		`)
 		if err != nil {
@@ -337,11 +340,13 @@ func handleLeaderboard(database *sql.DB) http.HandlerFunc {
 		type entry struct {
 			Username string `json:"username"`
 			Wins     int    `json:"wins"`
+			Losses   int    `json:"losses"`
+			Draws    int    `json:"draws"`
 		}
 		result := []entry{}
 		for rows.Next() {
 			var e entry
-			if err := rows.Scan(&e.Username, &e.Wins); err != nil {
+			if err := rows.Scan(&e.Username, &e.Wins, &e.Losses, &e.Draws); err != nil {
 				log.Printf("leaderboard scan: %v", err)
 				continue
 			}

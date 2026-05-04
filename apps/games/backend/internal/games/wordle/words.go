@@ -1,25 +1,30 @@
 package wordle
 
-// Words is a list of common 5-letter words used as Wordle answers.
+// Words contains common English words of lengths 3–8 used as Wordle answers.
 var Words = []string{
-	"CRANE", "SLATE", "TRACE", "CRATE", "RAISE",
-	"AROSE", "STALE", "IRATE", "SNARE", "LEAST",
-	"ADORE", "AUDIO", "AISLE", "ALONE", "ALOFT",
-	"AMBLE", "ANGEL", "ANKLE", "APPLE", "ARGUE",
-	"ARTSY", "ASIDE", "ATONE", "AWFUL", "BAKER",
-	"BARGE", "BASIC", "BASIS", "BEACH", "BEARS",
-	"BEAST", "BEGIN", "BEING", "BELOW", "BENCH",
-	"BLEND", "BLESS", "BLIND", "BLOCK", "BLOOD",
-	"BLOOM", "BLOWN", "BOARD", "BOXER", "BRAVE",
-	"BREAD", "BREAK", "BREED", "BRIDE", "BRIEF",
-	"BRING", "BROKE", "BROOK", "BROWN", "BUILD",
-	"BUILT", "BURNS", "BURST", "BUYER", "CABIN",
-	"CABLE", "CAMEL", "CANDY", "CARGO", "CARRY",
-	"CAUSE", "CHAIN", "CHAIR", "CHALK", "CHAOS",
-	"CHARM", "CHART", "CHASE", "CHEAP", "CHECK",
-	"CHEEK", "CHESS", "CHEST", "CHIEF", "CHILD",
-	"CHINA", "CIVIC", "CLAIM", "CLASH", "CLASS",
-	"CLEAN", "CLEAR", "CLERK", "CLICK", "CLIFF",
-	"CLIMB", "CLOCK", "CLONE", "CLOSE", "CLOTH",
-	"CLOUD", "COACH", "COAST", "COBRA", "COMET",
+	// 3-letter words
+	"CAT", "DOG", "SUN", "HAT", "MAP", "RUN", "FLY", "BIG", "SKY", "SEA",
+	"ICE", "JOY", "KEY", "LAW", "ODD", "PEN", "RED", "TIN", "WAR", "ZIP", "BOX",
+
+	// 4-letter words
+	"GAME", "PLAY", "WORD", "CODE", "DARK", "FIRE", "GOLD", "HARD", "IDEA", "JUMP",
+	"KIND", "LOVE", "MORE", "NOTE", "OPEN", "PUSH", "QUIT", "RACE", "SALT", "TIME",
+	"USER", "VINE", "WALK", "ZERO",
+
+	// 5-letter words
+	"BRAVE", "CHESS", "CROWN", "DREAM", "EARLY", "FLAME", "GRACE", "HINTS", "INDEX", "JUICE",
+	"KNIFE", "LIGHT", "MAGIC", "NIGHT", "OCEAN", "POWER", "QUICK", "ROYAL", "SHINE", "TIGER",
+	"ULTRA", "VAPOR", "WITCH", "XENON", "YACHT", "ZEBRA",
+
+	// 6-letter words
+	"BATTLE", "CASTLE", "GARDEN", "HUNTER", "IMPACT", "JUNGLE", "KEEPER", "LAUNCH", "MIRROR", "NIGHTS",
+	"OBJECT", "PILLAR", "QUARRY", "RACING", "SIGNAL", "TANGLE", "UNITED", "VANISH", "WINTER", "YELLOW",
+
+	// 7-letter words
+	"CAPTAIN", "DESTINY", "ELEMENT", "FANTASY", "GLIMMER", "HORIZON", "IMAGINE", "JUSTICE", "KINGDOM", "LANTERN",
+	"MYSTERY", "NETWORK", "ODYSSEY", "PROPHET", "QUANTUM", "RADIANT", "SERPENT", "TRIUMPH", "UPGRADE", "VIBRANT",
+
+	// 8-letter words
+	"ABSOLUTE", "CHAMPION", "DARKNESS", "ELECTRIC", "FORTRESS", "GREATEST", "HAPPENED", "IMPERIAL", "JOYSTICK", "KNAPSACK",
+	"GLORIOUS", "MIDNIGHT",
 }

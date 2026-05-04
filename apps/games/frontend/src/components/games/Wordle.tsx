@@ -9,6 +9,7 @@ const KEYBOARD_ROWS = [
 
 export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
   const s = state as WordleState
+  const wordLen = s.word_length ?? 5
   const [input, setInput] = useState('')
   const [shake, setShake] = useState(false)
   const _inputRef = useRef<HTMLInputElement>(null)
@@ -37,14 +38,14 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
   })
 
   const submitGuess = useCallback(() => {
-    if (input.length !== 5) {
+    if (input.length !== wordLen) {
       setShake(true)
       setTimeout(() => setShake(false), 400)
       return
     }
     onAction({ guess: input.toUpperCase() })
     setInput('')
-  }, [input, onAction])
+  }, [input, wordLen, onAction])
 
   const handleKey = useCallback((key: string) => {
     if (!canGuess) return
@@ -52,10 +53,10 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
       submitGuess()
     } else if (key === '⌫' || key === 'Backspace') {
       setInput(p => p.slice(0, -1))
-    } else if (/^[A-Za-z]$/.test(key) && input.length < 5) {
+    } else if (/^[A-Za-z]$/.test(key) && input.length < wordLen) {
       setInput(p => p + key.toUpperCase())
     }
-  }, [canGuess, input, submitGuess])
+  }, [canGuess, input, wordLen, submitGuess])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -73,13 +74,13 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
     isSolved: boolean
   ) => {
     return (
-      <div className="wordle-grid">
+      <div className="wordle-grid" style={{ gridTemplateColumns: `repeat(${wordLen}, 1fr)` }}>
         {Array.from({ length: 6 }, (_, row) => {
           const guess: string = guesses[row] ?? ''
           const rowHints: number[] = hints[row] ?? []
           const isCurrentRow = isMe && row === attempts && !isSolved && !s.game_over
 
-          return Array.from({ length: 5 }, (_, col) => {
+          return Array.from({ length: wordLen }, (_, col) => {
             const letter = isCurrentRow ? (input[col] ?? '') : (guess[col] ?? '')
             const hint: number | undefined = (!isCurrentRow && guess.length > 0) ? rowHints[col] : undefined
 
@@ -121,7 +122,7 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
   }
 
   return (
-    <div className="game-container">
+    <div className="game-container" style={{ paddingBottom: 200 }}>
       <div className="game-info">
         {canGuess ? (
           <div className="turn-indicator your-turn">Your turn to guess</div>
@@ -153,20 +154,20 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
                 value={input}
                 onChange={e => {
                   const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '')
-                  if (v.length <= 5) setInput(v)
+                  if (v.length <= wordLen) setInput(v)
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter') submitGuess()
                 }}
                 placeholder="GUESS"
-                maxLength={5}
+                maxLength={wordLen}
                 style={{ letterSpacing: 6, fontWeight: 800, fontSize: 18, textAlign: 'center' }}
                 autoFocus
               />
               <button
                 className="btn-primary"
                 onClick={submitGuess}
-                disabled={input.length !== 5}
+                disabled={input.length !== wordLen}
               >
                 Enter
               </button>
@@ -186,8 +187,25 @@ export function Wordle({ state, playerIdx, onAction, gameOver }: GameProps) {
         </div>
       </div>
 
-      {/* On-screen keyboard */}
-      <div className="wordle-keyboard">
+      {/* Revealed word banner */}
+      {(gameOver || s.game_over) && s.revealed_word && (
+        <div style={{ textAlign: 'center', marginTop: 16, padding: '12px 24px', background: 'var(--bg-card)', borderRadius: 12, border: '1px solid var(--border)' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>The word was</div>
+          <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: 4 }}>{s.revealed_word}</div>
+        </div>
+      )}
+
+      {/* On-screen keyboard — fixed footer */}
+      <div className="wordle-keyboard" style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'var(--bg-card)',
+        padding: 8,
+        borderTop: '1px solid var(--border)',
+        zIndex: 100,
+      }}>
         {KEYBOARD_ROWS.map((row, ri) => (
           <div key={ri} className="wordle-key-row">
             {row.map(key => {

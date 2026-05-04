@@ -11,6 +11,7 @@ import { Nim } from '../components/games/Nim'
 import { Pong } from '../components/games/Pong'
 import { LightCycles } from '../components/games/LightCycles'
 import { Wordle } from '../components/games/Wordle'
+import { Battleships } from '../components/games/Battleships'
 import { AuthContext } from '../App'
 
 export function RoomPage() {
@@ -185,6 +186,8 @@ function GameBoard({ gameId, state, playerIdx, onAction, gameOver }: GameBoardPr
       return <LightCycles {...props} />
     case 'wordle':
       return <Wordle {...props} />
+    case 'battleships':
+      return <Battleships {...props} />
     default:
       return (
         <div className="page" style={{ textAlign: 'center' }}>

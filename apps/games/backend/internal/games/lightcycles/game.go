@@ -4,8 +4,8 @@ type State = map[string]any
 type Action = map[string]any
 
 const (
-	gridWidth  = 40
-	gridHeight = 30
+	gridWidth  = 100
+	gridHeight = 60
 )
 
 // Game implements Light Cycles (real-time, 10fps tick).
@@ -20,15 +20,18 @@ func (g *Game) Init(_ int64) State {
 		"width":  gridWidth,
 		"height": gridHeight,
 		"players": []any{
-			map[string]any{"x": 10, "y": gridHeight / 2, "dir": "right"},
-			map[string]any{"x": gridWidth - 10, "y": gridHeight / 2, "dir": "left"},
+			map[string]any{"x": 15, "y": 30, "dir": "right"},
+			map[string]any{"x": 85, "y": 30, "dir": "left"},
 		},
 		"trails": []any{
-			[]any{[]any{10, gridHeight / 2}},
-			[]any{[]any{gridWidth - 10, gridHeight / 2}},
+			[]any{[]any{15, 30}},
+			[]any{[]any{85, 30}},
 		},
-		"alive":  []bool{true, true},
-		"winner": -2,
+		"alive":     []bool{true, true},
+		"winner":    -2,
+		"phase":     "countdown",
+		"countdown": 3,
+		"tickCount": 0,
 	}
 }
 
@@ -53,6 +56,30 @@ func (g *Game) Tick(state State, inputs [2]*Action, _ float64) State {
 	players := clonePlayers(state["players"])
 	trails := cloneTrails(state["trails"])
 	alive := cloneAlive(state["alive"])
+	phase, _ := state["phase"].(string)
+	tickCount := toInt(state["tickCount"]) + 1
+	countdown := toInt(state["countdown"])
+
+	if phase == "countdown" {
+		// Every 10 ticks decrement countdown (10fps → 1s per 10 ticks)
+		if tickCount%10 == 0 {
+			countdown--
+		}
+		if countdown <= 0 {
+			phase = "playing"
+		}
+		return State{
+			"width":     gridWidth,
+			"height":    gridHeight,
+			"players":   players,
+			"trails":    trails,
+			"alive":     alive,
+			"winner":    -2,
+			"phase":     phase,
+			"countdown": countdown,
+			"tickCount": tickCount,
+		}
+	}
 
 	// Apply direction inputs (prevent reversals)
 	for i, inp := range inputs {
@@ -149,12 +176,15 @@ func (g *Game) Tick(state State, inputs [2]*Action, _ float64) State {
 	}
 
 	return State{
-		"width":   gridWidth,
-		"height":  gridHeight,
-		"players": players,
-		"trails":  trails,
-		"alive":   alive,
-		"winner":  winner,
+		"width":     gridWidth,
+		"height":    gridHeight,
+		"players":   players,
+		"trails":    trails,
+		"alive":     alive,
+		"winner":    winner,
+		"phase":     "playing",
+		"countdown": 0,
+		"tickCount": tickCount,
 	}
 }
 
