@@ -1,14 +1,17 @@
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
-  name: host-allow-wireguard-ssh
+  name: host-allow-wireguard
 spec:
   nodeSelector:
     matchLabels: {}
   ingress:
+  # WireGuard subnet is fully trusted — allow all traffic
+  # Covers SSH (22001), HTTPS gateway (443), k8s API (6443),
+  # and any internal service reachable via 10.20.0.1 LB IP
   - fromCIDR:
     - "10.20.0.0/24"
-    toPorts:
-    - ports:
-      - port: "22001"
-        protocol: TCP
+  # Allow existing established connections (return traffic)
+  - fromEntities:
+    - cluster
+    - host
