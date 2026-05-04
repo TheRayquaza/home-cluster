@@ -5,4 +5,3 @@ resources:
   - route.yaml
   - namespace.yaml
   - certificate.yaml
-  - pull-secret.yaml
