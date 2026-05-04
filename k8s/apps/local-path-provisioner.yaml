@@ -22,7 +22,7 @@ spec:
   sources:
   - repoURL: https://charts.containeroo.ch
     chart: local-path-provisioner
-    targetRevision: v0.0.34
+    targetRevision: 0.0.36
     helm:
       releaseName: local-path-provisioner
       skipCrds: false
@@ -38,7 +38,7 @@ spec:
 
         helperImage:
           repository: busybox
-          tag: "1.36.1"
+          tag: "1.37.0"
 
         defaultSettings:
           registrySecret: ~
