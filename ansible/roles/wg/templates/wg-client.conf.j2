@@ -8,5 +8,5 @@ DNS = {{ client.wg_dns }}
 [Peer]
 PublicKey = {{ wg_public_key }}
 Endpoint = {{ wg_public_ip }}:{{ wg_port }}
-AllowedIPs = {{ wg_server_ip }}/32
+AllowedIPs = {{ wg_server_ip }}/32, 10.20.0.100/32
 PersistentKeepalive = 25
