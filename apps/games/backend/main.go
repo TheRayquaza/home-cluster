@@ -39,6 +39,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	// Health probe — no DB hit, instant 200
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	// Auth routes
 	mux.HandleFunc("POST /api/auth/register", handleRegister(database))
 	mux.HandleFunc("POST /api/auth/login", handleLogin(database, cfg.JWTSecret))

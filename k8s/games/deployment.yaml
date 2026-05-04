@@ -21,7 +21,7 @@ spec:
         - name: ghcr
       containers:
         - name: backend
-          image: ghcr.io/therayquaza/home-cluster/games-backend:v0.1.0@sha256:f1279aa5d226d5ef27b5a41f0bfd15329c0289095d3c05f3f36bfe51a181216f
+          image: ghcr.io/therayquaza/home-cluster/games-backend:v0.1.1@sha256:592d1f75e86cced1c1718b55c5d10b695c23ebd8baa79700e0d3409d46db8377
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -37,16 +37,21 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "200m"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            failureThreshold: 30
+            periodSeconds: 3
           readinessProbe:
             httpGet:
-              path: /api/games
+              path: /healthz
               port: 8080
-            initialDelaySeconds: 5
             periodSeconds: 10
+            failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /api/games
+              path: /healthz
               port: 8080
-            initialDelaySeconds: 15
             periodSeconds: 30
-
+            failureThreshold: 3
