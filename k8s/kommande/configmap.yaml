@@ -4,6 +4,6 @@ metadata:
   name: kommande-config
   namespace: kommande
 data:
-  MONGO_URI: "mongodb://localhost:27017"
+  MONGO_URI: "mongodb://mongodb:27017"
   DB_NAME: "kommande"
   PORT: "8080"

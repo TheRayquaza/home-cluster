@@ -50,30 +50,3 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 30
 
-        - name: postgres
-          image: postgres:17-alpine
-          env:
-            - name: POSTGRES_DB
-              value: games
-            - name: POSTGRES_USER
-              value: games
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: games-secret
-                  key: DB_PASSWORD
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-
-      volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: games-postgres-data

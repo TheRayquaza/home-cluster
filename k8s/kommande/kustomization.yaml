@@ -6,6 +6,8 @@ resources:
   - pvc.yaml
   - configmap.yaml
   - secret.yaml
+  - mongodb-statefulset.yaml
+  - mongodb-service.yaml
   - deployment.yaml
   - service.yaml
   - route.yaml

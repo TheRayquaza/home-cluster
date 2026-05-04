@@ -17,6 +17,8 @@ spec:
       labels:
         app: kommande
     spec:
+      imagePullSecrets:
+        - name: ghcr
       containers:
         - name: kommande
           image: ghcr.io/therayquaza/home-cluster/kommande:0.2.3
@@ -47,29 +49,3 @@ spec:
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 30
-
-        - name: mongodb
-          image: docker.io/mongo:7.0
-          ports:
-            - containerPort: 27017
-          env:
-            - name: MONGO_INITDB_DATABASE
-              value: kommande
-          volumeMounts:
-            - name: mongodb-data
-              mountPath: /data/db
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-
-      volumes:
-        - name: mongodb-data
-          persistentVolumeClaim:
-            claimName: mongodb-data
-
-      imagePullSecrets:
-        - name: ghcr
