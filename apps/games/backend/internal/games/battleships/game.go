@@ -9,80 +9,29 @@ import (
 type State = map[string]any
 type Action = map[string]any
 
-// shipSizes is the fleet configuration: carrier, battleship, cruiser, submarine, destroyer.
 var shipSizes = []int{5, 4, 3, 3, 2}
 
 const totalShipCells = 17 // sum of shipSizes
 
-// Game implements Battleships (turn-based, placement then combat).
 type Game struct{}
 
 func (g *Game) ID() string     { return "battleships" }
 func (g *Game) Name() string   { return "Battleships" }
 func (g *Game) RealTime() bool { return false }
 
-func (g *Game) Init(seed int64) State {
-	rng := rand.New(rand.NewSource(seed))
-	board0 := randomBoard(rng)
-	board1 := randomBoard(rng)
-
+// Init starts with empty boards; players place ships manually or via randomize.
+func (g *Game) Init(_ int64) State {
 	return State{
 		"phase":      "placement",
-		"boards":     []any{board0[:], board1[:]},
+		"boards":     []any{make([]int, 100), make([]int, 100)},
 		"shots":      []any{make([]int, 100), make([]int, 100)},
 		"ready":      []bool{false, false},
 		"ships_left": []int{totalShipCells, totalShipCells},
 		"turn":       0,
 		"winner":     -2,
 		"ship_sizes": shipSizes,
+		"to_place":   []any{append([]int(nil), shipSizes...), append([]int(nil), shipSizes...)},
 	}
-}
-
-// randomBoard places ships of sizes [5,4,3,3,2] randomly without overlap.
-func randomBoard(rng *rand.Rand) [100]int {
-	var board [100]int
-	for _, size := range shipSizes {
-		for {
-			horizontal := rng.Intn(2) == 0
-			var x, y int
-			if horizontal {
-				x = rng.Intn(10 - size + 1)
-				y = rng.Intn(10)
-			} else {
-				x = rng.Intn(10)
-				y = rng.Intn(10 - size + 1)
-			}
-			// Check no overlap
-			overlap := false
-			for i := 0; i < size; i++ {
-				var idx int
-				if horizontal {
-					idx = y*10 + x + i
-				} else {
-					idx = (y+i)*10 + x
-				}
-				if board[idx] != 0 {
-					overlap = true
-					break
-				}
-			}
-			if overlap {
-				continue
-			}
-			// Place ship
-			for i := 0; i < size; i++ {
-				var idx int
-				if horizontal {
-					idx = y*10 + x + i
-				} else {
-					idx = (y+i)*10 + x
-				}
-				board[idx] = 1
-			}
-			break
-		}
-	}
-	return board
 }
 
 func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
@@ -95,6 +44,7 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 	shots := cloneShots(state["shots"])
 	ready := cloneReady(state["ready"])
 	shipsLeft := cloneInts2(state["ships_left"])
+	toPlace := cloneToPlace(state["to_place"])
 	turn := toInt(state["turn"])
 	winner := toInt(state["winner"])
 
@@ -104,6 +54,9 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 	case "placement":
 		switch actionType {
 		case "ready":
+			if len(toPlace[playerIdx]) > 0 {
+				return state, errors.New("place all ships before readying")
+			}
 			ready[playerIdx] = true
 			if ready[0] && ready[1] {
 				phase = "combat"
@@ -112,9 +65,31 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 			rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 			newBoard := randomBoard(rng)
 			boards[playerIdx] = newBoard[:]
+			toPlace[playerIdx] = nil
 			ready[playerIdx] = false
+		case "place":
+			if ready[playerIdx] {
+				return state, errors.New("already marked as ready")
+			}
+			if len(toPlace[playerIdx]) == 0 {
+				return state, errors.New("no ships left to place")
+			}
+			size := toPlace[playerIdx][0]
+			x := toInt(action["x"])
+			y := toInt(action["y"])
+			horizontal, _ := action["horizontal"].(bool)
+			if err := placeShip(boards[playerIdx], size, x, y, horizontal); err != nil {
+				return state, err
+			}
+			toPlace[playerIdx] = toPlace[playerIdx][1:]
+		case "clear":
+			if ready[playerIdx] {
+				return state, errors.New("already marked as ready")
+			}
+			boards[playerIdx] = make([]int, 100)
+			toPlace[playerIdx] = append([]int(nil), shipSizes...)
 		default:
-			return state, errors.New("unknown action during placement; use 'ready' or 'randomize'")
+			return state, errors.New("unknown placement action")
 		}
 
 	case "combat":
@@ -136,19 +111,15 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 		}
 
 		if boards[opponentIdx][idx] == 1 {
-			// Hit
 			boards[opponentIdx][idx] = 2
 			shots[playerIdx][idx] = 2
 			shipsLeft[opponentIdx]--
-			// Hit: same player shoots again (turn unchanged)
 			if shipsLeft[opponentIdx] == 0 {
 				winner = playerIdx
 			}
 		} else {
-			// Miss
 			boards[opponentIdx][idx] = 3
 			shots[playerIdx][idx] = 1
-			// Miss: switch turn
 			turn = 1 - turn
 		}
 
@@ -165,6 +136,7 @@ func (g *Game) Apply(state State, playerIdx int, action Action) (State, error) {
 		"turn":       turn,
 		"winner":     winner,
 		"ship_sizes": shipSizes,
+		"to_place":   []any{toPlace[0], toPlace[1]},
 	}, nil
 }
 
@@ -176,8 +148,7 @@ func (g *Game) Winner(state State) int {
 	return toInt(state["winner"])
 }
 
-// StripBoards removes the opponent's board data so clients can't cheat.
-// Each player should only see their own board and the shots grid.
+// StripBoards hides the opponent's un-revealed ship positions.
 func StripBoards(state State, playerIdx int) State {
 	out := make(State, len(state))
 	for k, v := range state {
@@ -187,13 +158,11 @@ func StripBoards(state State, playerIdx int) State {
 	boards := cloneBoards(state["boards"])
 	opponentIdx := 1 - playerIdx
 
-	// Replace opponent's board: only reveal cells that were already hit or missed
 	opponentBoard := make([]int, 100)
 	for i, v := range boards[opponentIdx] {
 		if v == 2 || v == 3 {
 			opponentBoard[i] = v
 		}
-		// else leave as 0 (unknown)
 	}
 
 	if playerIdx == 0 {
@@ -202,6 +171,84 @@ func StripBoards(state State, playerIdx int) State {
 		out["boards"] = []any{opponentBoard, boards[1]}
 	}
 	return out
+}
+
+// placeShip places a ship of given size at (x,y) on board.
+func placeShip(board []int, size, x, y int, horizontal bool) error {
+	if horizontal {
+		if x < 0 || x+size > 10 || y < 0 || y >= 10 {
+			return errors.New("ship out of bounds")
+		}
+	} else {
+		if x < 0 || x >= 10 || y < 0 || y+size > 10 {
+			return errors.New("ship out of bounds")
+		}
+	}
+	for i := 0; i < size; i++ {
+		var idx int
+		if horizontal {
+			idx = y*10 + x + i
+		} else {
+			idx = (y+i)*10 + x
+		}
+		if board[idx] != 0 {
+			return errors.New("overlaps with existing ship")
+		}
+	}
+	for i := 0; i < size; i++ {
+		var idx int
+		if horizontal {
+			idx = y*10 + x + i
+		} else {
+			idx = (y+i)*10 + x
+		}
+		board[idx] = 1
+	}
+	return nil
+}
+
+func randomBoard(rng *rand.Rand) [100]int {
+	var board [100]int
+	for _, size := range shipSizes {
+		for {
+			horizontal := rng.Intn(2) == 0
+			var x, y int
+			if horizontal {
+				x = rng.Intn(10 - size + 1)
+				y = rng.Intn(10)
+			} else {
+				x = rng.Intn(10)
+				y = rng.Intn(10 - size + 1)
+			}
+			overlap := false
+			for i := 0; i < size; i++ {
+				var idx int
+				if horizontal {
+					idx = y*10 + x + i
+				} else {
+					idx = (y+i)*10 + x
+				}
+				if board[idx] != 0 {
+					overlap = true
+					break
+				}
+			}
+			if overlap {
+				continue
+			}
+			for i := 0; i < size; i++ {
+				var idx int
+				if horizontal {
+					idx = y*10 + x + i
+				} else {
+					idx = (y+i)*10 + x
+				}
+				board[idx] = 1
+			}
+			break
+		}
+	}
+	return board
 }
 
 func cloneBoards(v any) [2][]int {
@@ -266,6 +313,31 @@ func cloneInts2(v any) []int {
 				break
 			}
 			out[i] = toInt(x)
+		}
+	}
+	return out
+}
+
+func cloneToPlace(v any) [2][]int {
+	var out [2][]int
+	s, ok := v.([]any)
+	if !ok {
+		return out
+	}
+	for i, row := range s {
+		if i >= 2 {
+			break
+		}
+		switch r := row.(type) {
+		case []int:
+			out[i] = append([]int(nil), r...)
+		case []any:
+			out[i] = make([]int, 0, len(r))
+			for _, x := range r {
+				out[i] = append(out[i], toInt(x))
+			}
+		case nil:
+			out[i] = nil
 		}
 	}
 	return out

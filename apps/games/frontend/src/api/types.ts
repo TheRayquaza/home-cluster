@@ -125,6 +125,7 @@ export interface BattleshipsState {
   turn: number
   winner: number
   ship_sizes: number[]
+  to_place: (number[] | null)[]
 }
 
 export type GameState =
