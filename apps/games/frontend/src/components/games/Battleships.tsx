@@ -6,7 +6,8 @@ import type { GameProps, BattleshipsState } from '../../api/types'
 
 function cellColor(value: number, isOwn: boolean): string {
   if (value === 2) return '#e64a19' // hit
-  if (value === 3) return '#29b6f6' // miss
+  if (value === 3) return '#29b6f6' // miss on own board (opponent missed)
+  if (!isOwn && value === 1) return '#29b6f6' // miss on shots grid (we missed)
   if (isOwn && value === 1) return '#546e7a' // own ship
   return '#0d47a1' // water / unknown
 }
@@ -49,7 +50,7 @@ function BattleGrid({ cells, isOwn, clickable, onCellClick }: GridProps) {
             onMouseEnter={e => { if (canClick) (e.currentTarget as HTMLDivElement).style.filter = 'brightness(1.4)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.filter = '' }}
           >
-            {val === 2 ? '⊕' : val === 3 ? '·' : ''}
+            {val === 2 ? '⊕' : (val === 3 || (!isOwn && val === 1)) ? '·' : ''}
           </div>
         )
       })}
