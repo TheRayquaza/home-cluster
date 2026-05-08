@@ -2,125 +2,97 @@ package handlers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"golang.org/x/crypto/bcrypt"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"kommande/internal/middleware"
 	"kommande/internal/models"
 )
 
-func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
-	// Already logged in → redirect
+func (h *Handler) OIDCLoginRedirect(w http.ResponseWriter, r *http.Request) {
 	if u := middleware.GetUser(r.Context()); u != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	h.render(w, r, "templates/login.html", "Connexion", nil)
-}
-
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-
-	if username == "" || password == "" {
-		setFlash(w, "Veuillez remplir tous les champs.", "danger")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	var user models.User
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel()
-
-	err := h.db.Collection("users").FindOne(ctx, bson.M{"username": username}).Decode(&user)
-	if err != nil {
-		setFlash(w, "Identifiants incorrects.", "danger")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		setFlash(w, "Identifiants incorrects.", "danger")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-
-	token, err := h.generateJWT(&user)
+	state, err := generateState()
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-
 	http.SetCookie(w, &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
+		Name:     "oidc_state",
+		Value:    state,
 		Path:     "/",
-		MaxAge:   86400 * 7, // 7 days
+		MaxAge:   300,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, h.oauth2Config.AuthCodeURL(state), http.StatusFound)
 }
 
-func (h *Handler) RegisterPage(w http.ResponseWriter, r *http.Request) {
-	h.render(w, r, "templates/register.html", "Inscription", nil)
-}
-
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	if username == "" || email == "" || password == "" {
-		setFlash(w, "Veuillez remplir tous les champs.", "danger")
-		http.Redirect(w, r, "/register", http.StatusSeeOther)
+func (h *Handler) OIDCCallback(w http.ResponseWriter, r *http.Request) {
+	stateCookie, err := r.Cookie("oidc_state")
+	if err != nil || stateCookie.Value != r.URL.Query().Get("state") {
+		http.Error(w, "Invalid OAuth state", http.StatusBadRequest)
 		return
 	}
+	http.SetCookie(w, &http.Cookie{Name: "oidc_state", Path: "/", MaxAge: -1})
 
-	if len(password) < 6 {
-		setFlash(w, "Le mot de passe doit faire au moins 6 caractères.", "danger")
-		http.Redirect(w, r, "/register", http.StatusSeeOther)
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel()
-
-	// Check for existing username
-	count, _ := h.db.Collection("users").CountDocuments(ctx, bson.M{"username": username})
-	if count > 0 {
-		setFlash(w, "Ce nom d'utilisateur est déjà pris.", "danger")
-		http.Redirect(w, r, "/register", http.StatusSeeOther)
-		return
-	}
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	code := r.URL.Query().Get("code")
+	oauth2Token, err := h.oauth2Config.Exchange(r.Context(), code)
 	if err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		log.Printf("OIDC code exchange failed: %v", err)
+		http.Error(w, "Authentication failed", http.StatusInternalServerError)
 		return
 	}
 
-	user := models.User{
-		ID:           bson.NewObjectID(),
-		Username:     username,
-		Email:        email,
-		PasswordHash: string(hash),
-		Role:         "user",
-		CreatedAt:    time.Now(),
+	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	if !ok {
+		http.Error(w, "No ID token in response", http.StatusInternalServerError)
+		return
 	}
-
-	if _, err := h.db.Collection("users").InsertOne(ctx, user); err != nil {
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	idToken, err := h.oidcVerifier.Verify(r.Context(), rawIDToken)
+	if err != nil {
+		log.Printf("OIDC ID token verification failed: %v", err)
+		http.Error(w, "Authentication failed", http.StatusInternalServerError)
 		return
 	}
 
-	token, err := h.generateJWT(&user)
+	var claims struct {
+		Email             string   `json:"email"`
+		PreferredUsername string   `json:"preferred_username"`
+		Groups            []string `json:"groups"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		log.Printf("OIDC claims extraction failed: %v", err)
+		http.Error(w, "Authentication failed", http.StatusInternalServerError)
+		return
+	}
+
+	role := "user"
+	for _, g := range claims.Groups {
+		if g == "kommande-admins" {
+			role = "admin"
+			break
+		}
+	}
+
+	user, err := h.upsertOIDCUser(r.Context(), claims.Email, claims.PreferredUsername, role)
+	if err != nil {
+		log.Printf("OIDC user upsert failed: %v", err)
+		http.Error(w, "Authentication failed", http.StatusInternalServerError)
+		return
+	}
+
+	token, err := h.generateJWT(user)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -134,8 +106,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
-
-	setFlash(w, "Bienvenue, "+username+" !", "success")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -146,7 +116,37 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		Path:   "/",
 		MaxAge: -1,
 	})
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	logoutURL := h.cfg.OIDCIssuer + "/protocol/openid-connect/logout" +
+		"?post_logout_redirect_uri=" + url.QueryEscape(h.cfg.BaseURL) +
+		"&client_id=" + url.QueryEscape(h.cfg.OIDCClientID)
+	http.Redirect(w, r, logoutURL, http.StatusSeeOther)
+}
+
+func (h *Handler) upsertOIDCUser(ctx context.Context, email, username, role string) (*models.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if username == "" {
+		username = email
+	}
+
+	filter := bson.M{"email": email}
+	update := bson.M{
+		"$set": bson.M{
+			"username":   username,
+			"role":       role,
+		},
+		"$setOnInsert": bson.M{
+			"_id":        bson.NewObjectID(),
+			"email":      email,
+			"created_at": time.Now(),
+		},
+	}
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	var user models.User
+	err := h.db.Collection("users").FindOneAndUpdate(ctx, filter, update, opts).Decode(&user)
+	return &user, err
 }
 
 func (h *Handler) generateJWT(user *models.User) (string, error) {
@@ -169,4 +169,12 @@ func (h *Handler) generateJWT(user *models.User) (string, error) {
 		return "", err
 	}
 	return signed, nil
+}
+
+func generateState() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
 }

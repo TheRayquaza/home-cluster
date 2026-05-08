@@ -6,6 +6,7 @@ resources:
 
   - secret.yaml
   - configmap.yaml
+  - external-secret.yaml
 
   - argocd-application-controller.yaml
   - argocd-applicationset-controller.yaml

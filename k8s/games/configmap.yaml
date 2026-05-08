@@ -7,3 +7,7 @@ data:
   DB_URL: "postgres://games:games@postgres:5432/games?sslmode=disable"
   PORT: "8080"
   ALLOWED_ORIGIN: "https://games.internal.rayq.app"
+  BASE_URL: "https://games.internal.rayq.app"
+  OIDC_ISSUER: "https://keycloak.internal.rayq.app/realms/home"
+  OIDC_CLIENT_ID: "games"
+  OIDC_REDIRECT_URL: "https://games.internal.rayq.app/api/auth/oidc/callback"

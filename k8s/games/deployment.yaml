@@ -30,6 +30,8 @@ spec:
                 name: games-config
             - secretRef:
                 name: games-secret
+            - secretRef:
+                name: games-oidc-secret
           resources:
             requests:
               memory: "64Mi"

@@ -16,3 +16,4 @@ resources:
   - pix.yaml
   - kommande.yaml
   - games.yaml
+  - idp.yaml

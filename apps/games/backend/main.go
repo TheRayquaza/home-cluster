@@ -1,25 +1,30 @@
 package main
 
 import (
+	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/gorilla/websocket"
+	"golang.org/x/oauth2"
 
 	"games/internal/auth"
 	"games/internal/config"
 	"games/internal/db"
 	"games/internal/games"
 	"games/internal/hub"
-
-	"github.com/gorilla/websocket"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -35,6 +40,19 @@ func main() {
 		log.Fatalf("db migrate: %v", err)
 	}
 
+	oidcProvider, err := oidc.NewProvider(context.Background(), cfg.OIDCIssuer)
+	if err != nil {
+		log.Fatalf("OIDC provider init: %v", err)
+	}
+	oauth2Cfg := &oauth2.Config{
+		ClientID:     cfg.OIDCClientID,
+		ClientSecret: cfg.OIDCClientSecret,
+		RedirectURL:  cfg.OIDCRedirectURL,
+		Endpoint:     oidcProvider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+	oidcVerifier := oidcProvider.Verifier(&oidc.Config{ClientID: cfg.OIDCClientID})
+
 	h := hub.NewHub(database)
 
 	mux := http.NewServeMux()
@@ -44,10 +62,10 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	// Auth routes
-	mux.HandleFunc("POST /api/auth/register", handleRegister(database))
-	mux.HandleFunc("POST /api/auth/login", handleLogin(database, cfg.JWTSecret))
-	mux.HandleFunc("POST /api/auth/logout", handleLogout())
+	// OIDC auth flow
+	mux.HandleFunc("GET /api/auth/oidc/login", handleOIDCLogin(oauth2Cfg))
+	mux.HandleFunc("GET /api/auth/oidc/callback", handleOIDCCallback(database, cfg, oauth2Cfg, oidcVerifier))
+	mux.HandleFunc("POST /api/auth/logout", handleLogout(cfg))
 	mux.Handle("GET /api/me", chain(handleMe(), auth.RequireAuth(cfg.JWTSecret)))
 
 	// Public game routes
@@ -115,86 +133,95 @@ func jsonErr(w http.ResponseWriter, code int, msg string) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }
 
-// ---- Auth handlers ----
+// ---- OIDC auth handlers ----
 
-func handleRegister(database *sql.DB) http.HandlerFunc {
+func handleOIDCLogin(oauth2Cfg *oauth2.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var body struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			jsonErr(w, http.StatusBadRequest, "invalid request body")
-			return
-		}
-		body.Username = strings.TrimSpace(body.Username)
-		if body.Username == "" || body.Password == "" {
-			jsonErr(w, http.StatusBadRequest, "username and password are required")
-			return
-		}
-		if len(body.Username) > 50 {
-			jsonErr(w, http.StatusBadRequest, "username too long")
-			return
-		}
-
-		hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+		state, err := generateState()
 		if err != nil {
-			log.Printf("bcrypt error: %v", err)
 			jsonErr(w, http.StatusInternalServerError, "internal error")
 			return
 		}
-
-		var userID string
-		err = database.QueryRow(
-			`INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id`,
-			body.Username, string(hash),
-		).Scan(&userID)
-		if err != nil {
-			if strings.Contains(err.Error(), "unique") || strings.Contains(err.Error(), "duplicate") {
-				jsonErr(w, http.StatusConflict, "username already taken")
-				return
-			}
-			log.Printf("register error: %v", err)
-			jsonErr(w, http.StatusInternalServerError, "internal error")
-			return
-		}
-
-		jsonOK(w, map[string]string{"id": userID, "username": body.Username})
+		http.SetCookie(w, &http.Cookie{
+			Name:     "oidc_state",
+			Value:    state,
+			Path:     "/",
+			MaxAge:   300,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+		http.Redirect(w, r, oauth2Cfg.AuthCodeURL(state), http.StatusFound)
 	}
 }
 
-func handleLogin(database *sql.DB, secret string) http.HandlerFunc {
+func handleOIDCCallback(database *sql.DB, cfg config.Config, oauth2Cfg *oauth2.Config, verifier *oidc.IDTokenVerifier) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var body struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			jsonErr(w, http.StatusBadRequest, "invalid request body")
+		stateCookie, err := r.Cookie("oidc_state")
+		if err != nil || stateCookie.Value != r.URL.Query().Get("state") {
+			jsonErr(w, http.StatusBadRequest, "invalid state")
 			return
 		}
+		http.SetCookie(w, &http.Cookie{Name: "oidc_state", Path: "/", MaxAge: -1})
 
-		var userID, hash, role string
-		err := database.QueryRow(
-			`SELECT id, password_hash, role FROM users WHERE username = $1`,
-			body.Username,
-		).Scan(&userID, &hash, &role)
-		if err == sql.ErrNoRows {
-			jsonErr(w, http.StatusUnauthorized, "invalid credentials")
-			return
-		}
+		oauth2Token, err := oauth2Cfg.Exchange(r.Context(), r.URL.Query().Get("code"))
 		if err != nil {
-			log.Printf("login query: %v", err)
-			jsonErr(w, http.StatusInternalServerError, "internal error")
+			log.Printf("OIDC code exchange: %v", err)
+			jsonErr(w, http.StatusInternalServerError, "authentication failed")
 			return
 		}
 
-		if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(body.Password)); err != nil {
-			jsonErr(w, http.StatusUnauthorized, "invalid credentials")
+		rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+		if !ok {
+			jsonErr(w, http.StatusInternalServerError, "no id_token")
+			return
+		}
+		idToken, err := verifier.Verify(r.Context(), rawIDToken)
+		if err != nil {
+			log.Printf("OIDC verify: %v", err)
+			jsonErr(w, http.StatusInternalServerError, "authentication failed")
 			return
 		}
 
-		token, err := auth.GenerateToken(secret, userID, body.Username, role)
+		var claims struct {
+			Email             string   `json:"email"`
+			PreferredUsername string   `json:"preferred_username"`
+			Groups            []string `json:"groups"`
+		}
+		if err := idToken.Claims(&claims); err != nil {
+			log.Printf("OIDC claims: %v", err)
+			jsonErr(w, http.StatusInternalServerError, "authentication failed")
+			return
+		}
+
+		role := "player"
+		for _, g := range claims.Groups {
+			if g == "games-admins" {
+				role = "gamemaster"
+				break
+			}
+		}
+
+		username := claims.PreferredUsername
+		if username == "" {
+			username = claims.Email
+		}
+
+		var userID string
+		err = database.QueryRowContext(r.Context(), `
+			INSERT INTO users (username, email, password_hash, role)
+			VALUES ($1, $2, '', $3)
+			ON CONFLICT (email) DO UPDATE
+			  SET username = EXCLUDED.username,
+			      role = EXCLUDED.role
+			RETURNING id
+		`, username, claims.Email, role).Scan(&userID)
+		if err != nil {
+			log.Printf("OIDC user upsert: %v", err)
+			jsonErr(w, http.StatusInternalServerError, "authentication failed")
+			return
+		}
+
+		token, err := auth.GenerateToken(cfg.JWTSecret, userID, username, role)
 		if err != nil {
 			log.Printf("generate token: %v", err)
 			jsonErr(w, http.StatusInternalServerError, "internal error")
@@ -209,15 +236,11 @@ func handleLogin(database *sql.DB, secret string) http.HandlerFunc {
 			MaxAge:   7 * 24 * 3600,
 			SameSite: http.SameSiteLaxMode,
 		})
-		jsonOK(w, map[string]string{
-			"id":       userID,
-			"username": body.Username,
-			"role":     role,
-		})
+		http.Redirect(w, r, cfg.BaseURL, http.StatusSeeOther)
 	}
 }
 
-func handleLogout() http.HandlerFunc {
+func handleLogout(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "auth_token",
@@ -226,7 +249,10 @@ func handleLogout() http.HandlerFunc {
 			Path:     "/",
 			MaxAge:   -1,
 		})
-		jsonOK(w, map[string]string{"message": "logged out"})
+		logoutURL := cfg.OIDCIssuer + "/protocol/openid-connect/logout" +
+			"?post_logout_redirect_uri=" + url.QueryEscape(cfg.BaseURL) +
+			"&client_id=" + url.QueryEscape(cfg.OIDCClientID)
+		jsonOK(w, map[string]string{"logout_url": logoutURL})
 	}
 }
 
@@ -510,7 +536,6 @@ func handleWS(h *hub.Hub, jwtSecret, _ string) http.HandlerFunc {
 			return
 		}
 
-		// Validate inline (can't use middleware for WS upgrade)
 		claims := validateWSToken(jwtSecret, token)
 		if claims == nil {
 			http.Error(w, `{"error":"invalid token"}`, http.StatusUnauthorized)
@@ -547,8 +572,6 @@ func handleWS(h *hub.Hub, jwtSecret, _ string) http.HandlerFunc {
 }
 
 func validateWSToken(secret, tokenStr string) *auth.Claims {
-	// We reuse the same logic as the middleware but return nil on error
-	// This is a thin wrapper to avoid importing JWT directly in main
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("Authorization", "Bearer "+tokenStr)
 
@@ -575,3 +598,14 @@ func (n *noopResponseWriter) Header() http.Header {
 }
 func (n *noopResponseWriter) Write(b []byte) (int, error) { return len(b), nil }
 func (n *noopResponseWriter) WriteHeader(code int)        { n.code = code }
+
+// ---- Helpers ----
+
+func generateState() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+

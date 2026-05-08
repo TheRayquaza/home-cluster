@@ -152,3 +152,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: games
+
+    - name: keycloak-https
+      port: 443
+      protocol: HTTPS
+      hostname: "keycloak.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: keycloak-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: idp
