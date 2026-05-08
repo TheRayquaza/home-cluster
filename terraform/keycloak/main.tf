@@ -15,8 +15,9 @@ provider "keycloak" {
 }
 
 resource "keycloak_realm" "home" {
-  realm   = "home"
-  enabled = true
+  realm                = "home"
+  enabled              = true
+  registration_allowed = true
 }
 
 # ==========================================

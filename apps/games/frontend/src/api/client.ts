@@ -29,13 +29,7 @@ async function request<T>(
 
 export const api = {
   // Auth
-  register(username: string, password: string): Promise<User> {
-    return request('POST', '/auth/register', { username, password })
-  },
-  login(username: string, password: string): Promise<User> {
-    return request('POST', '/auth/login', { username, password })
-  },
-  logout(): Promise<void> {
+  logout(): Promise<{ logout_url: string }> {
     return request('POST', '/auth/logout')
   },
   me(): Promise<User> {
