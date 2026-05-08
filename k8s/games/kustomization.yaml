@@ -12,3 +12,4 @@ resources:
   - service.yaml
   - route.yaml
   - certificate.yaml
+  - external-secret.yaml

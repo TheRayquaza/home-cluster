@@ -1,0 +1,65 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: idp
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+  sources:
+  - repoURL: https://charts.bitnami.com/bitnami
+    chart: keycloak
+    targetRevision: 26.3.3
+    helm:
+      releaseName: keycloak
+      values: |
+        auth:
+          adminUser: admin
+          existingSecret: keycloak
+          passwordSecretKey: admin-password
+
+        postgresql:
+          enabled: true
+          auth:
+            existingSecret: keycloak
+            secretKeys:
+              adminPasswordKey: postgresql-password
+              userPasswordKey: postgresql-password
+
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 250m
+          limits:
+            memory: 1Gi
+            cpu: 500m
+
+        ingress:
+          enabled: false
+
+        extraEnvVars:
+          - name: KC_PROXY_HEADERS
+            value: xforwarded
+          - name: KC_HTTP_ENABLED
+            value: "true"
+          - name: KC_HOSTNAME
+            value: keycloak.internal.rayq.app
+          - name: KC_HOSTNAME_STRICT
+            value: "false"
+
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/idp

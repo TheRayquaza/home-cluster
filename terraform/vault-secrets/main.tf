@@ -31,6 +31,27 @@ resource "vault_kv_secret_v2" "cloudflare" {
 
   data_json = jsonencode({
     CLOUDFLARE_API_TOKEN = var.cloudflare_api_token
-    email     = var.cloudflare_email
+    email                = var.cloudflare_email
+  })
+}
+
+# ==========================================
+# Keycloak Secrets
+# ==========================================
+# Run twice:
+#   1st apply (bootstrap): provide admin-password + postgresql-password only
+#   2nd apply (post-realm): add client secrets from `terraform output` in terraform/keycloak/
+
+resource "vault_kv_secret_v2" "keycloak" {
+  mount = vault_mount.kv.path
+  name  = "keycloak"
+
+  data_json = jsonencode({
+    admin-password         = var.keycloak_admin_password
+    postgresql-password    = var.keycloak_postgresql_password
+    argocd-client-secret   = var.keycloak_argocd_client_secret
+    vault-client-secret    = var.keycloak_vault_client_secret
+    kommande-client-secret = var.keycloak_kommande_client_secret
+    games-client-secret    = var.keycloak_games_client_secret
   })
 }

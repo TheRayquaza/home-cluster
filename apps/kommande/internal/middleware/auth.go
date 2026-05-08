@@ -26,7 +26,7 @@ func RequireAuth(jwtSecret string, next http.Handler) http.Handler {
 		user, err := extractUser(r, jwtSecret)
 		if err != nil {
 			clearAuthCookie(w)
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 			return
 		}
 		ctx := context.WithValue(r.Context(), UserContextKey, user)

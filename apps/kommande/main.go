@@ -12,13 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"golang.org/x/crypto/bcrypt"
 
 	"kommande/internal/config"
 	dbpkg "kommande/internal/db"
 	"kommande/internal/handlers"
 	"kommande/internal/middleware"
-	"kommande/internal/models"
 )
 
 //go:embed templates static
@@ -35,29 +33,26 @@ func main() {
 	database := client.Database(cfg.DBName)
 	ctx := context.Background()
 
-	// Indexes
 	database.Collection("users").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bson.D{{Key: "username", Value: 1}},
+		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
 	database.Collection("orders").Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys: bson.D{{Key: "username", Value: 1}, {Key: "date", Value: -1}},
+		Keys: bson.D{{Key: "email", Value: 1}, {Key: "date", Value: -1}},
 	})
 
-	seedAdmin(ctx, database)
-
-	h := handlers.New(database, files, cfg)
+	h, err := handlers.New(database, files, cfg)
+	if err != nil {
+		log.Fatalf("Handler init failed: %v", err)
+	}
 
 	mux := http.NewServeMux()
 
-	// Static assets
 	mux.Handle("GET /static/", http.FileServer(http.FS(files)))
 
-	// Auth
-	mux.HandleFunc("GET /login", h.LoginPage)
-	mux.HandleFunc("POST /login", h.Login)
-	mux.HandleFunc("GET /register", h.RegisterPage)
-	mux.HandleFunc("POST /register", h.Register)
+	// OIDC auth flow
+	mux.HandleFunc("GET /auth/login", h.OIDCLoginRedirect)
+	mux.HandleFunc("GET /auth/callback", h.OIDCCallback)
 	mux.HandleFunc("POST /logout", h.Logout)
 
 	// User routes (require auth)
@@ -109,29 +104,4 @@ func main() {
 	defer cancel()
 	srv.Shutdown(shutCtx)
 	client.Disconnect(shutCtx)
-}
-
-func seedAdmin(ctx context.Context, db *mongo.Database) {
-	count, _ := db.Collection("users").CountDocuments(ctx, bson.M{})
-	if count > 0 {
-		return
-	}
-	hash, err := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("seed admin error: %v", err)
-		return
-	}
-	_, err = db.Collection("users").InsertOne(ctx, models.User{
-		ID:           bson.NewObjectID(),
-		Username:     "admin",
-		Email:        "admin@kommande.local",
-		PasswordHash: string(hash),
-		Role:         "admin",
-		CreatedAt:    time.Now(),
-	})
-	if err != nil {
-		log.Printf("seed admin insert error: %v", err)
-		return
-	}
-	log.Println("Default admin created — username: admin / password: admin123")
 }

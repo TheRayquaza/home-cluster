@@ -6,6 +6,7 @@ resources:
   - pvc.yaml
   - configmap.yaml
   - secret.yaml
+  - external-secret.yaml
   - mongodb-statefulset.yaml
   - mongodb-service.yaml
   - deployment.yaml

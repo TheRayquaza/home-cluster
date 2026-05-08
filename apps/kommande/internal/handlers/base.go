@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"html/template"
@@ -8,6 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/coreos/go-oidc/v3/oidc"
+	"golang.org/x/oauth2"
 
 	"kommande/internal/config"
 	"kommande/internal/middleware"
@@ -18,14 +22,35 @@ import (
 )
 
 type Handler struct {
-	db      *mongo.Database
-	files   embed.FS
-	cfg     *config.Config
-	funcMap template.FuncMap
+	db           *mongo.Database
+	files        embed.FS
+	cfg          *config.Config
+	funcMap      template.FuncMap
+	oauth2Config *oauth2.Config
+	oidcVerifier *oidc.IDTokenVerifier
 }
 
-func New(db *mongo.Database, files embed.FS, cfg *config.Config) *Handler {
-	h := &Handler{db: db, files: files, cfg: cfg}
+func New(db *mongo.Database, files embed.FS, cfg *config.Config) (*Handler, error) {
+	provider, err := oidc.NewProvider(context.Background(), cfg.OIDCIssuer)
+	if err != nil {
+		return nil, fmt.Errorf("OIDC provider init: %w", err)
+	}
+	oauth2Cfg := &oauth2.Config{
+		ClientID:     cfg.OIDCClientID,
+		ClientSecret: cfg.OIDCClientSecret,
+		RedirectURL:  cfg.OIDCRedirectURL,
+		Endpoint:     provider.Endpoint(),
+		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+	}
+	verifier := provider.Verifier(&oidc.Config{ClientID: cfg.OIDCClientID})
+
+	h := &Handler{
+		db:           db,
+		files:        files,
+		cfg:          cfg,
+		oauth2Config: oauth2Cfg,
+		oidcVerifier: verifier,
+	}
 	h.funcMap = template.FuncMap{
 		"statusClass": statusClass,
 		"statusLabel": statusLabel,
@@ -43,7 +68,7 @@ func New(db *mongo.Database, files embed.FS, cfg *config.Config) *Handler {
 			return false
 		},
 	}
-	return h
+	return h, nil
 }
 
 type PageData struct {
