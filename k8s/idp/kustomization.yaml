@@ -8,3 +8,5 @@ resources:
   - postgres-pvc.yaml
   - postgres-statefulset.yaml
   - postgres-service.yaml
+  - keycloak-deployment.yaml
+  - keycloak-service.yaml
