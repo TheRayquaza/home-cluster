@@ -42,24 +42,15 @@ spec:
           digest: sha256:6a7217a100bd3e5de4063a27a538ef999a3c5a88c4b4ec0ffc0a642aee7b2597
 
         postgresql:
-          enabled: true
-          image:
-            registry: docker.io
-            repository: postgres
-            tag: 17.6-bookworm
-            digest: sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
-          auth:
-            existingSecret: keycloak
-            secretKeys:
-              adminPasswordKey: postgresql-password
-              userPasswordKey: postgresql-password
-          primary:
-            extraVolumes:
-              - name: postgresql-run
-                emptyDir: {}
-            extraVolumeMounts:
-              - name: postgresql-run
-                mountPath: /var/run/postgresql
+          enabled: false
+
+        externalDatabase:
+          host: postgres.idp.svc.cluster.local
+          port: 5432
+          user: keycloak
+          database: keycloak
+          existingSecret: keycloak
+          existingSecretPasswordKey: postgresql-password
 
         resources:
           requests:

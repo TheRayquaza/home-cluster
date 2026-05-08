@@ -5,3 +5,6 @@ resources:
   - certificate.yaml
   - route.yaml
   - external-secret.yaml
+  - postgres-pvc.yaml
+  - postgres-statefulset.yaml
+  - postgres-service.yaml
