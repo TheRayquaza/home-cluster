@@ -20,3 +20,4 @@ resources:
   - kommande.yaml
   - games.yaml
   - idp.yaml
+  - policy-reporter.yaml

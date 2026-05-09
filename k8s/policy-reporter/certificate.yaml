@@ -1,0 +1,13 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: policy-reporter-tls-secret
+  namespace: default
+spec:
+  secretName: policy-reporter-tls-secret
+  issuerRef:
+    name: letsencrypt-dns01
+    kind: ClusterIssuer
+  dnsNames:
+    - policy-reporter.internal.rayq.app

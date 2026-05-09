@@ -168,3 +168,19 @@ spec:
           selector:
             matchLabels:
               kubernetes.io/metadata.name: idp
+
+    - name: policy-reporter-https
+      port: 443
+      protocol: HTTPS
+      hostname: "policy-reporter.internal.rayq.app"
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: policy-reporter-tls-secret
+            kind: Secret
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: policy-reporter

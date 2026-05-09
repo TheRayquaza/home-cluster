@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: policy-reporter-route
+  namespace: policy-reporter
+spec:
+  parentRefs:
+    - name: private-gateway
+      namespace: default
+      sectionName: policy-reporter-https
+  hostnames:
+    - policy-reporter.internal.rayq.app
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: policy-reporter-ui
+          port: 8080
