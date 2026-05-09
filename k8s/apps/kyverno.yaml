@@ -63,6 +63,14 @@ spec:
           policyExceptions:
             enabled: true
             namespace: kyverno
+        # bitnami/kubectl:1.30.2 doesn't exist; use latest to fix ImagePullBackOff
+        cleanupJobs:
+          admissionReports:
+            image:
+              tag: "latest"
+          clusterAdmissionReports:
+            image:
+              tag: "latest"
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/kyverno
