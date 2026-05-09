@@ -25,7 +25,7 @@ spec:
       releaseName: falco
       values: |
         driver:
-          kind: ebpf
+          kind: modern_ebpf
         falco:
           grpc:
             enabled: false
@@ -43,16 +43,7 @@ spec:
             memory: 1024Mi
         falcosidekick:
           enabled: false
-        customRules:
-          custom_rules.yaml: |
-            - macro: argocd_allowed_write
-              condition: >
-                container.image.repository = "quay.io/argoproj/argocd" and
-                (fd.name startswith "/tmp/" or fd.name startswith "/home/argocd/")
-            - macro: k8s_health_check
-              condition: >
-                proc.name in (curl, wget, grpc-health-probe) and
-                fd.name startswith "/proc/"
+        customRules: {}
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/falco
