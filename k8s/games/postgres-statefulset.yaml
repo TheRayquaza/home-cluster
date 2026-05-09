@@ -40,6 +40,8 @@ spec:
             capabilities:
               drop: ["ALL"]
             runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data

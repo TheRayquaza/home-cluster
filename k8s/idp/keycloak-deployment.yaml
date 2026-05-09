@@ -20,6 +20,7 @@ spec:
           image: docker.io/keycloak/keycloak:26.3.3
           args:
             - start
+            - --optimized
           env:
             - name: KC_DB
               value: postgres
@@ -78,6 +79,6 @@ spec:
             httpGet:
               path: /health/live
               port: 9000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
             periodSeconds: 30
             failureThreshold: 3
