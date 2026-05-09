@@ -36,3 +36,11 @@ spec:
         selector:
           matchLabels:
             app: uptime-kuma
+    # games-frontend: nginx:alpine v0.2.0 replaced by nginx-unprivileged in v0.3.0
+    # remove this entry once v0.3.0 image is deployed
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["games"]
+        selector:
+          matchLabels:
+            app: games-frontend
