@@ -13,3 +13,4 @@ resources:
   - exception-cilium.yaml
   - exception-writable-rootfs.yaml
   - exception-third-party.yaml
+  - exception-keycloak.yaml
