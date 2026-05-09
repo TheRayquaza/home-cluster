@@ -24,8 +24,38 @@ spec:
     helm:
       releaseName: policy-reporter
       values: |
+        podSecurityContext:
+          runAsNonRoot: true
+          runAsUser: 1234
+          seccompProfile:
+            type: RuntimeDefault
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1234
+          seccompProfile:
+            type: RuntimeDefault
+
         ui:
           enabled: true
+          podSecurityContext:
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 50m
@@ -36,6 +66,20 @@ spec:
 
         kyvernoPlugin:
           enabled: true
+          podSecurityContext:
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 50m
@@ -46,6 +90,20 @@ spec:
 
         trivyPlugin:
           enabled: true
+          podSecurityContext:
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1234
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 50m
