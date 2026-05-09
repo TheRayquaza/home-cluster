@@ -50,6 +50,10 @@ func main() {
 
 	mux.Handle("GET /static/", http.FileServer(http.FS(files)))
 
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	// OIDC auth flow
 	mux.HandleFunc("GET /auth/login", h.OIDCLoginRedirect)
 	mux.HandleFunc("GET /auth/callback", h.OIDCCallback)

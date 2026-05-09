@@ -21,7 +21,7 @@ spec:
         - name: ghcr
       containers:
         - name: kommande
-          image: ghcr.io/therayquaza/home-cluster/kommande:0.3.0@sha256:cdf6af9beb03f16d9bfe9d055de9d3dcd81a07ef9540f9e75d44e2a6ad343e07
+          image: ghcr.io/therayquaza/home-cluster/kommande:0.3.1@sha256:f8cb8594c2218e65a02b6489f9cb70afc049bcadf3750b6d7f57ca0d0c7dda14
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -41,13 +41,13 @@ spec:
               cpu: "200m"
           readinessProbe:
             httpGet:
-              path: /auth/login
+              path: /healthz
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /auth/login
+              path: /healthz
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 30
