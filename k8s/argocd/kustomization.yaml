@@ -4,6 +4,7 @@ resources:
   - certificate.yaml
   - namespace.yaml
 
+  - oidc-rbac.yaml
   - secret.yaml
   - configmap.yaml
   - external-secret.yaml
