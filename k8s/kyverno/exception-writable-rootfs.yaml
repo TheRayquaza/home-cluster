@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: writable-rootfs-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames: ["require-readonly-rootfs"]
+  match:
+    any:
+    # games postgres
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["games"]
+        selector:
+          matchLabels:
+            app: postgres
+    # kommande mongodb
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["kommande"]
+        selector:
+          matchLabels:
+            app: mongodb
+    # idp postgres
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["idp"]
+        selector:
+          matchLabels:
+            app: postgres
+    # keycloak needs writable fs for /tmp and cache dirs
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["idp"]
+        selector:
+          matchLabels:
+            app: keycloak

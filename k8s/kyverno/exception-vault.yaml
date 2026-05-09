@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: vault-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-no-privilege-escalation
+    - require-seccomp
+    - require-drop-all-caps
+  - policyName: require-readonly-rootfs
+    ruleNames: ["require-readonly-rootfs"]
+  match:
+    any:
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["vault"]
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: vault

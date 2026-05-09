@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: kyverno
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  sources:
+  - repoURL: https://kyverno.github.io/kyverno/
+    chart: kyverno
+    targetRevision: 3.3.7
+    helm:
+      releaseName: kyverno
+      values: |
+        admissionController:
+          replicas: 1
+          container:
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+        backgroundController:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+        cleanupController:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+        reportsController:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+        # Kyverno looks for PolicyExceptions in this namespace
+        features:
+          policyExceptions:
+            enabled: true
+            namespace: kyverno
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/kyverno

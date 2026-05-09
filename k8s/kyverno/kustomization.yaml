@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - policy-require-security-context.yaml
+  - policy-require-readonly-rootfs.yaml
+  - policy-disallow-privileged.yaml
+  - policy-disallow-host-namespaces.yaml
+  - policy-require-resource-limits.yaml
+  - exception-falco.yaml
+  - exception-vault.yaml
+  - exception-cilium.yaml
+  - exception-writable-rootfs.yaml
+  - exception-third-party.yaml

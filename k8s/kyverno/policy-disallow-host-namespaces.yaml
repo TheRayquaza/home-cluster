@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-namespaces
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: disallow-host-namespaces
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Use of host namespaces (hostPID, hostIPC, hostNetwork) is not allowed"
+      deny:
+        conditions:
+          any:
+          - key: "{{ request.object.spec.hostPID }}"
+            operator: Equals
+            value: true
+          - key: "{{ request.object.spec.hostIPC }}"
+            operator: Equals
+            value: true
+          - key: "{{ request.object.spec.hostNetwork }}"
+            operator: Equals
+            value: true

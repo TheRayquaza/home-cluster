@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: falco
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: falco
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  sources:
+  - repoURL: https://falcosecurity.github.io/charts
+    chart: falco
+    targetRevision: 4.21.2
+    helm:
+      releaseName: falco
+      values: |
+        driver:
+          kind: ebpf
+        falco:
+          grpc:
+            enabled: false
+          grpc_output:
+            enabled: false
+          json_output: true
+          log_stderr: true
+          priority: warning
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        falcosidekick:
+          enabled: false
+        # Mount custom rules ConfigMap
+        customRules:
+          custom_rules.yaml: |
+            # loaded via k8s/falco/custom-rules.yaml ConfigMap
+        extra:
+          env:
+          - name: FALCO_GRPC_THREADINESS
+            value: "0"
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/falco

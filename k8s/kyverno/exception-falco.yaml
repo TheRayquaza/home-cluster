@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: falco-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: disallow-privileged-containers
+    ruleNames: ["disallow-privileged"]
+  - policyName: disallow-host-namespaces
+    ruleNames: ["disallow-host-namespaces"]
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-no-privilege-escalation
+    - require-seccomp
+    - require-drop-all-caps
+  - policyName: require-readonly-rootfs
+    ruleNames: ["require-readonly-rootfs"]
+  match:
+    any:
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["falco"]
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: falco

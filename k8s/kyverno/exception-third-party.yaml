@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: third-party-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-no-privilege-escalation
+    - require-seccomp
+    - require-drop-all-caps
+  - policyName: require-readonly-rootfs
+    ruleNames: ["require-readonly-rootfs"]
+  match:
+    any:
+    # immich: upstream images run as root and write to filesystem
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["immich"]
+        selector:
+          matchLabels:
+            app: immich
+    # pinchflat: community image, writes to /config and /downloads
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["pinchflat"]
+        selector:
+          matchLabels:
+            app: pinchflat
+    # uptime-kuma: writes SQLite to /app/data
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["uptime-kuma"]
+        selector:
+          matchLabels:
+            app: uptime-kuma

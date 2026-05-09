@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trivy
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: trivy-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  sources:
+  - repoURL: https://aquasecurity.github.io/helm-charts/
+    chart: trivy-operator
+    targetRevision: 0.26.0
+    helm:
+      releaseName: trivy-operator
+      values: |
+        trivy:
+          severity: CRITICAL
+          ignoreUnfixed: true
+        operator:
+          scanJobTimeout: 5m
+          vulnerabilityReportsPlugin: Trivy
+          configAuditScannerEnabled: false
+          rbacAssessmentScannerEnabled: false
+          infraAssessmentScannerEnabled: false
+          clusterComplianceEnabled: false
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/trivy

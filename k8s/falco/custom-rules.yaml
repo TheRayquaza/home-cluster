@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-custom-rules
+  namespace: falco
+data:
+  custom_rules.yaml: |
+    # Suppress noisy ArgoCD repo-server writes to /tmp during git operations
+    - macro: argocd_allowed_write
+      condition: >
+        container.image.repository = "quay.io/argoproj/argocd" and
+        (fd.name startswith "/tmp/" or fd.name startswith "/home/argocd/")
+
+    # Suppress standard K8s health check probes accessing /proc
+    - macro: k8s_health_check
+      condition: >
+        proc.name in (curl, wget, grpc-health-probe) and
+        fd.name startswith "/proc/"
+
+    # Override default rule to exclude known-safe writers
+    - rule: Write below root
+      desc: An attempt to write to any file directly below / or /etc
+      condition: >
+        root_dir and evt.type = write and evt.dir = < and
+        not proc.name in (runc, docker, containerd) and
+        not argocd_allowed_write
+      output: >
+        File below root opened for writing (user=%user.name command=%proc.cmdline
+        file=%fd.name container_id=%container.id image=%container.image.repository)
+      priority: WARNING
+      tags: [filesystem, mitre_persistence]

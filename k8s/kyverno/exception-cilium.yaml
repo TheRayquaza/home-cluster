@@ -1,0 +1,19 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: cilium-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: disallow-privileged-containers
+    ruleNames: ["disallow-privileged"]
+  - policyName: disallow-host-namespaces
+    ruleNames: ["disallow-host-namespaces"]
+  match:
+    any:
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["kube-system"]
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: cilium-agent
