@@ -11,28 +11,28 @@ spec:
     any:
     # games postgres
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "StatefulSet"]
         namespaces: ["games"]
         selector:
           matchLabels:
             app: postgres
     # kommande mongodb
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "StatefulSet"]
         namespaces: ["kommande"]
         selector:
           matchLabels:
             app: mongodb
     # idp postgres
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "StatefulSet"]
         namespaces: ["idp"]
         selector:
           matchLabels:
             app: postgres
     # keycloak needs writable fs for /tmp and cache dirs
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "StatefulSet"]
         namespaces: ["idp"]
         selector:
           matchLabels:
