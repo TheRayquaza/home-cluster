@@ -16,6 +16,10 @@ spec:
       labels:
         app: immich
     spec:
+      securityContext:
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       # Immich Server
       - name: server
@@ -92,6 +96,12 @@ spec:
         ports:
         - name: postgres
           containerPort: 5432
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          runAsNonRoot: true
+          runAsUser: 999
         volumeMounts:
         - name: pgdata
           mountPath: /var/lib/postgresql/data
@@ -122,6 +132,13 @@ spec:
       # Redis
       - name: redis
         image: docker.io/valkey/valkey:9@sha256:3b55fbaa0cd93cf0d9d961f405e4dfcc70efe325e2d84da207a0a8e6d8fde4f9
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 999
         ports:
         - name: redis
           containerPort: 6379
