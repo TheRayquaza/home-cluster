@@ -1,0 +1,25 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-path
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: disallow-host-path
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system", "falco"]
+    validate:
+      message: "hostPath volumes are not allowed"
+      deny:
+        conditions:
+          any:
+          - key: "{{ request.object.spec.volumes[].hostPath | length(@) }}"
+            operator: GreaterThan
+            value: 0

@@ -7,6 +7,7 @@ resources:
   - policy-disallow-privileged.yaml
   - policy-disallow-host-namespaces.yaml
   - policy-require-resource-limits.yaml
+  - policy-disallow-host-path.yaml
   - exception-falco.yaml
   - exception-vault.yaml
   - exception-cilium.yaml

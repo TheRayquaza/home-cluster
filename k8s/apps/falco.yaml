@@ -43,14 +43,27 @@ spec:
             memory: 1024Mi
         falcosidekick:
           enabled: false
-        # Mount custom rules ConfigMap
         customRules:
           custom_rules.yaml: |
-            # loaded via k8s/falco/custom-rules.yaml ConfigMap
-        extra:
-          env:
-          - name: FALCO_GRPC_THREADINESS
-            value: "0"
+            - macro: argocd_allowed_write
+              condition: >
+                container.image.repository = "quay.io/argoproj/argocd" and
+                (fd.name startswith "/tmp/" or fd.name startswith "/home/argocd/")
+            - macro: k8s_health_check
+              condition: >
+                proc.name in (curl, wget, grpc-health-probe) and
+                fd.name startswith "/proc/"
+            - rule: Write below root
+              desc: An attempt to write to any file directly below / or /etc
+              condition: >
+                root_dir and evt.type = write and evt.dir = < and
+                not proc.name in (runc, docker, containerd) and
+                not argocd_allowed_write
+              output: >
+                File below root opened for writing (user=%user.name command=%proc.cmdline
+                file=%fd.name container_id=%container.id image=%container.image.repository)
+              priority: WARNING
+              tags: [filesystem, mitre_persistence]
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/falco
