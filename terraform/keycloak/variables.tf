@@ -15,3 +15,13 @@ variable "keycloak_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "users" {
+  description = "Users to create in the home realm. groups: argocd-admins, vault-admins, kommande-admins, games-admins"
+  type = map(object({
+    email    = string
+    password = string
+    groups   = optional(list(string), [])
+  }))
+  default = {}
+}
