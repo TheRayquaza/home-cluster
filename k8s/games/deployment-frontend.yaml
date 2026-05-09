@@ -22,7 +22,23 @@ spec:
           image: ghcr.io/therayquaza/home-cluster/games-frontend:v0.2.0@sha256:b5968192d4f578ed8f818f01d6193405efbc848698c6142935d5a9e6ae2a12b6
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: nginx-tmp
+              mountPath: /tmp
           resources:
             requests:
               memory: "32Mi"
@@ -33,18 +49,25 @@ spec:
           startupProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             failureThreshold: 10
             periodSeconds: 3
           readinessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             periodSeconds: 10
             failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /
-              port: 80
+              port: 8080
             periodSeconds: 30
             failureThreshold: 3
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: nginx-tmp
+          emptyDir: {}

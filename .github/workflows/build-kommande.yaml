@@ -1,0 +1,17 @@
+name: Build - kommande
+
+on:
+  push:
+    tags:
+      - "kommande/v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build.yaml
+    with:
+      context: apps/kommande
+      image-name: ghcr.io/therayquaza/home-cluster/kommande
+      tag-prefix: "kommande/"
+    permissions:
+      contents: read
+      packages: write

@@ -1,0 +1,17 @@
+name: Build - pix
+
+on:
+  push:
+    tags:
+      - "pix/v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build.yaml
+    with:
+      context: apps/pix
+      image-name: ghcr.io/therayquaza/home-cluster/pix
+      tag-prefix: "pix/"
+    permissions:
+      contents: read
+      packages: write

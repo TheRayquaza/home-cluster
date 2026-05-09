@@ -1,0 +1,17 @@
+name: Build - games-backend
+
+on:
+  push:
+    tags:
+      - "games-backend/v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable-build.yaml
+    with:
+      context: apps/games/backend
+      image-name: ghcr.io/therayquaza/home-cluster/games-backend
+      tag-prefix: "games-backend/"
+    permissions:
+      contents: read
+      packages: write

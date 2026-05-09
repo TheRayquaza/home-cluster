@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+spec:
+  # Audit only: verify coverage before enforcing
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: require-limits
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must declare resource limits for CPU and memory"
+      foreach:
+      - list: "request.object.spec.containers"
+        pattern:
+          resources:
+            limits:
+              memory: "?*"
+              cpu: "?*"

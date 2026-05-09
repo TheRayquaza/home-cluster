@@ -1,0 +1,76 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-security-context
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: require-non-root
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must set runAsNonRoot=true"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][]"
+        pattern:
+          securityContext:
+            runAsNonRoot: true
+  - name: require-no-privilege-escalation
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must set allowPrivilegeEscalation=false"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][]"
+        pattern:
+          securityContext:
+            allowPrivilegeEscalation: false
+  - name: require-seccomp
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must use RuntimeDefault seccomp profile"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][]"
+        pattern:
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+  - name: require-drop-all-caps
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must drop ALL capabilities"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][]"
+        deny:
+          conditions:
+            all:
+            - key: "ALL"
+              operator: AnyNotIn
+              value: "{{ element.securityContext.capabilities.drop[].to_upper(@) || `[]` }}"

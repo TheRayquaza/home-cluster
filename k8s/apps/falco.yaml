@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: falco
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: falco
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  sources:
+  - repoURL: https://falcosecurity.github.io/charts
+    chart: falco
+    targetRevision: 4.21.2
+    helm:
+      releaseName: falco
+      values: |
+        driver:
+          kind: ebpf
+        falco:
+          grpc:
+            enabled: false
+          grpc_output:
+            enabled: false
+          json_output: true
+          log_stderr: true
+          priority: warning
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        falcosidekick:
+          enabled: false
+        customRules:
+          custom_rules.yaml: |
+            - macro: argocd_allowed_write
+              condition: >
+                container.image.repository = "quay.io/argoproj/argocd" and
+                (fd.name startswith "/tmp/" or fd.name startswith "/home/argocd/")
+            - macro: k8s_health_check
+              condition: >
+                proc.name in (curl, wget, grpc-health-probe) and
+                fd.name startswith "/proc/"
+            - rule: Write below root
+              desc: An attempt to write to any file directly below / or /etc
+              condition: >
+                root_dir and evt.type = write and evt.dir = < and
+                not proc.name in (runc, docker, containerd) and
+                not argocd_allowed_write
+              output: >
+                File below root opened for writing (user=%user.name command=%proc.cmdline
+                file=%fd.name container_id=%container.id image=%container.image.repository)
+              priority: WARNING
+              tags: [filesystem, mitre_persistence]
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/falco

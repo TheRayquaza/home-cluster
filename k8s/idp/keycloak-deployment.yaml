@@ -54,6 +54,14 @@ spec:
               containerPort: 8080
             - name: management
               containerPort: 9000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               memory: 512Mi
@@ -61,17 +69,17 @@ spec:
             limits:
               memory: 1Gi
               cpu: 500m
-          # readinessProbe:
-          #   httpGet:
-          #     path: /health/ready
-          #     port: 9000
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 10
-          #   failureThreshold: 6
-          # livenessProbe:
-          #   httpGet:
-          #     path: /health/live
-          #     port: 9000
-          #   initialDelaySeconds: 60
-          #   periodSeconds: 30
-          #   failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
