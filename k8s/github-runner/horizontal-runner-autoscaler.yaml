@@ -1,11 +1,11 @@
 apiVersion: actions.summerwind.dev/v1alpha1
 kind: HorizontalRunnerAutoscaler
 metadata:
-  name: org-runner-hra
+  name: repo-runner-hra
   namespace: github-runner
 spec:
   scaleTargetRef:
-    name: org-runner
+    name: repo-runner
   minReplicas: 1
   maxReplicas: 5
   metrics:
