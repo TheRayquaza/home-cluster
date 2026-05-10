@@ -35,7 +35,21 @@ spec:
         selector:
           matchLabels:
             app: pinchflat
-    # uptime-kuma: writes SQLite to /app/data
+---
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: uptime-kuma-rootfs-exception
+  namespace: kyverno
+spec:
+  # uptime-kuma writes to /app beyond the PVC mount; security context is now enforced
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
     - resources:
         kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["uptime-kuma"]
