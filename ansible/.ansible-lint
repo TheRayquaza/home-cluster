@@ -1,0 +1,11 @@
+exclude_paths:
+  - .cache/
+
+skip_list:
+  - yaml[truthy]
+  - name[casing]
+
+warn_list:
+  - experimental
+
+offline: false

@@ -1,0 +1,18 @@
+name: Security - games-frontend
+
+on:
+  pull_request:
+    paths:
+      - apps/games/frontend/**
+      - .github/workflows/apps/games-frontend/security.yaml
+      - .github/workflows/templates/security-trivy.yaml
+
+jobs:
+  trivy:
+    uses: ./.github/workflows/templates/security-trivy.yaml
+    with:
+      scan-type: fs
+      target: apps/games/frontend
+    permissions:
+      contents: read
+      security-events: write

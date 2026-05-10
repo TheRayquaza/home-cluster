@@ -1,0 +1,19 @@
+name: Lint - Ansible
+
+on:
+  pull_request:
+    paths:
+      - ansible/**
+      - .github/workflows/infra/lint-ansible.yaml
+
+jobs:
+  ansible-lint:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ansible/ansible-lint@v24
+        with:
+          working_directory: ansible/

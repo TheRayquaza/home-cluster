@@ -1,0 +1,20 @@
+name: Build - games-frontend
+
+on:
+  pull_request:
+    paths:
+      - apps/games/frontend/**
+      - .github/workflows/apps/games-frontend/build.yaml
+      - .github/workflows/templates/build.yaml
+
+jobs:
+  build:
+    uses: ./.github/workflows/templates/build.yaml
+    with:
+      context: apps/games/frontend
+      image-name: ghcr.io/therayquaza/home-cluster/games-frontend
+      push: false
+      platforms: linux/amd64
+    permissions:
+      contents: read
+      packages: read

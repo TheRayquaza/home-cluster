@@ -1,0 +1,38 @@
+name: Lint - games-frontend
+
+on:
+  pull_request:
+    paths:
+      - apps/games/frontend/**
+      - .hadolint.yaml
+      - .github/workflows/apps/games-frontend/lint.yaml
+      - .github/workflows/templates/lint-docker.yaml
+
+jobs:
+  typecheck:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/games/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/games/frontend
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+        working-directory: apps/games/frontend
+
+  docker:
+    uses: ./.github/workflows/templates/lint-docker.yaml
+    with:
+      dockerfile: apps/games/frontend/Dockerfile
+    permissions:
+      contents: read

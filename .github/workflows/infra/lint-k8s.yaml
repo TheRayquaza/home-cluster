@@ -1,0 +1,43 @@
+name: Lint - Kubernetes
+
+on:
+  pull_request:
+    paths:
+      - k8s/**
+      - .kube-linter.yaml
+      - .github/workflows/infra/lint-k8s.yaml
+
+jobs:
+  kubeconform:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sSfL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar xz -C /usr/local/bin/
+
+      - name: Validate manifests
+        run: |
+          find k8s -name '*.yaml' -not -name 'kustomization.yaml' \
+            | xargs kubeconform \
+                -kubernetes-version 1.32.0 \
+                -schema-location default \
+                -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+                -ignore-missing-schemas \
+                -summary
+
+  kube-linter:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: stackrox/kube-linter-action@v1
+        with:
+          directory: k8s
+          config: .kube-linter.yaml

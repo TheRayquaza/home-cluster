@@ -1,0 +1,26 @@
+name: Lint - games-backend
+
+on:
+  pull_request:
+    paths:
+      - apps/games/backend/**
+      - .golangci.yml
+      - .hadolint.yaml
+      - .github/workflows/apps/games-backend/lint.yaml
+      - .github/workflows/templates/lint-go.yaml
+      - .github/workflows/templates/lint-docker.yaml
+
+jobs:
+  go:
+    uses: ./.github/workflows/templates/lint-go.yaml
+    with:
+      working-directory: apps/games/backend
+    permissions:
+      contents: read
+
+  docker:
+    uses: ./.github/workflows/templates/lint-docker.yaml
+    with:
+      dockerfile: apps/games/backend/Dockerfile
+    permissions:
+      contents: read

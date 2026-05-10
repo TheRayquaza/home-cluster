@@ -1,0 +1,33 @@
+name: Publish - games-backend
+
+on:
+  push:
+    tags:
+      - "games-backend/v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/templates/build.yaml
+    with:
+      context: apps/games/backend
+      image-name: ghcr.io/therayquaza/home-cluster/games-backend
+      push: true
+      tag-prefix: "games-backend/"
+    permissions:
+      contents: read
+      packages: write
+
+  attest:
+    needs: build
+    runs-on: self-hosted
+    permissions:
+      id-token: write
+      attestations: write
+      packages: write
+    steps:
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/therayquaza/home-cluster/games-backend
+          subject-digest: ${{ needs.build.outputs.digest }}
+          push-to-registry: true
