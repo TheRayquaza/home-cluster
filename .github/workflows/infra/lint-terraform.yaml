@@ -1,0 +1,49 @@
+name: Lint - Terraform
+
+on:
+  pull_request:
+    paths:
+      - terraform/**
+      - .tflint.hcl
+      - .github/workflows/infra/lint-terraform.yaml
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Check formatting
+        run: terraform fmt -check -recursive terraform/
+
+  tflint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        module:
+          - aws
+          - cloudflare
+          - keycloak
+          - vault-auth
+          - vault-oidc
+          - vault-secrets
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init tflint
+        run: tflint --init
+        working-directory: terraform/${{ matrix.module }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tflint
+        run: tflint
+        working-directory: terraform/${{ matrix.module }}

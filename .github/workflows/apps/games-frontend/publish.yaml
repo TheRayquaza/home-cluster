@@ -1,0 +1,33 @@
+name: Publish - games-frontend
+
+on:
+  push:
+    tags:
+      - "games-frontend/v*"
+
+jobs:
+  build:
+    uses: ./.github/workflows/templates/build.yaml
+    with:
+      context: apps/games/frontend
+      image-name: ghcr.io/therayquaza/home-cluster/games-frontend
+      push: true
+      tag-prefix: "games-frontend/"
+    permissions:
+      contents: read
+      packages: write
+
+  attest:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
+      packages: write
+    steps:
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/therayquaza/home-cluster/games-frontend
+          subject-digest: ${{ needs.build.outputs.digest }}
+          push-to-registry: true
