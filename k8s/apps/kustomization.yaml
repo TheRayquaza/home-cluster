@@ -13,8 +13,8 @@ resources:
   - kyverno.yaml
   - trivy.yaml
   - falco.yaml
-  - pinchflat.yaml
-  - immich.yaml
+#  - pinchflat.yaml
+#  - immich.yaml
   - uptime-kuma.yaml
   - pix.yaml
   - kommande.yaml
