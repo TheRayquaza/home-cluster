@@ -60,6 +60,8 @@ spec:
               drop: ["ALL"]
             runAsNonRoot: true
             runAsUser: 1000
+            seccompProfile:	
+              type: RuntimeDefault
           resources:
             requests:
               memory: 512Mi
@@ -77,6 +79,7 @@ spec:
             httpGet:
               path: /health/ready
               port: 9000
+            initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 6
           livenessProbe:

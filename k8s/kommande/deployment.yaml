@@ -38,8 +38,6 @@ spec:
             - configMapRef:
                 name: kommande-config
             - secretRef:
-                name: kommande-secret
-            - secretRef:
                 name: kommande-oidc-secret
           resources:
             requests:
