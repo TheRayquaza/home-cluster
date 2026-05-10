@@ -1,0 +1,20 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: games-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    # games postgres
+    - resources:
+        kinds: ["Pod", "StatefulSet"]
+        namespaces: ["games"]
+        selector:
+          matchLabels:
+            app: postgres

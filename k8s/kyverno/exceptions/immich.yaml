@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: immich-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-no-privilege-escalation
+    - require-seccomp
+    - require-drop-all-caps
+    - autogen-require-non-root
+    - autogen-require-no-privilege-escalation
+    - autogen-require-seccomp
+    - autogen-require-drop-all-caps
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    # immich: upstream images run as root and write to filesystem
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["immich"]
+        selector:
+          matchLabels:
+            app: immich

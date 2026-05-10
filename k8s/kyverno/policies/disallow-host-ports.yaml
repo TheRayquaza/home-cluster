@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-ports
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: disallow-host-ports
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Containers must not bind to host ports — use a Service instead"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][].ports[]"
+        deny:
+          conditions:
+            any:
+            - key: "{{ element.hostPort || `0` }}"
+              operator: GreaterThan
+              value: 0

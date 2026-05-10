@@ -1,0 +1,41 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-capabilities-add
+spec:
+  # Audit only: belt-and-suspenders on top of require-drop-all-caps.
+  # Dangerous caps should never be added back after dropping ALL.
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: disallow-dangerous-caps
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Adding dangerous capabilities is not allowed (SYS_ADMIN, NET_ADMIN, SYS_PTRACE, SYS_MODULE, DAC_READ_SEARCH, SYS_RAWIO, NET_RAW, SYS_BOOT, SYSLOG)"
+      foreach:
+      - list: "request.object.spec.[containers, initContainers][]"
+        deny:
+          conditions:
+            any:
+            - key: "{{ element.securityContext.capabilities.add[] || `[]` }}"
+              operator: AnyIn
+              value:
+              - SYS_ADMIN
+              - NET_ADMIN
+              - SYS_PTRACE
+              - SYS_MODULE
+              - DAC_READ_SEARCH
+              - DAC_OVERRIDE
+              - SYS_RAWIO
+              - NET_RAW
+              - SYS_BOOT
+              - SYSLOG
+              - SETUID
+              - SETGID

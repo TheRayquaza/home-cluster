@@ -1,0 +1,41 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: keycloak-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-security-context
+    ruleNames: ["require-seccomp"]
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["idp"]
+        selector:
+          matchLabels:
+            app: keycloak
+---
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: keycloak-postgres-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    - resources:
+        kinds: ["Pod", "StatefulSet"]
+        namespaces: ["idp"]
+        selector:
+          matchLabels:
+            app: postgres

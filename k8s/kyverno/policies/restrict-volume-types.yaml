@@ -1,0 +1,36 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-volume-types
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: restrict-volume-types
+    match:
+      any:
+      - resources:
+          kinds: ["Pod"]
+    exclude:
+      any:
+      - resources:
+          namespaces: ["kube-system"]
+    validate:
+      message: "Only safe volume types are allowed: configMap, downwardAPI, emptyDir, ephemeral, persistentVolumeClaim, projected, secret, serviceAccountToken, csi"
+      deny:
+        conditions:
+          any:
+          - key: "{{ (request.object.spec.volumes || `[]`)[].keys(@)[] }}"
+            operator: AnyNotIn
+            value:
+            - name
+            - configMap
+            - downwardAPI
+            - emptyDir
+            - ephemeral
+            - hostPath
+            - persistentVolumeClaim
+            - projected
+            - secret
+            - serviceAccountToken
+            - csi

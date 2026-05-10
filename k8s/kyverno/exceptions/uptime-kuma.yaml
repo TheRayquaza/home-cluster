@@ -1,0 +1,20 @@
+---
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: uptime-kuma-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["uptime-kuma"]
+        selector:
+          matchLabels:
+            app: uptime-kuma

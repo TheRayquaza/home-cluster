@@ -2,19 +2,30 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - policy-require-security-context.yaml
-  - policy-require-readonly-rootfs.yaml
-  - policy-disallow-privileged.yaml
-  - policy-disallow-host-namespaces.yaml
-  - policy-require-resource-limits.yaml
-  - policy-disallow-host-path.yaml
-  - exception-falco.yaml
-  - exception-vault.yaml
-  - exception-cilium.yaml
-  - exception-writable-rootfs.yaml
-  - exception-third-party.yaml
-  - exception-keycloak.yaml
-  - exception-github-runner.yaml
-  - exception-argocd.yaml
-  - exception-cert-manager.yaml
-  - exception-systems.yaml
+
+  # Policies
+  - policies/require-security-context.yaml
+  - policies/require-readonly-rootfs.yaml
+  - policies/disallow-privileged.yaml
+  - policies/disallow-host-namespaces.yaml
+  - policies/require-resource-limits.yaml
+  - policies/disallow-host-path.yaml
+  - policies/disallow-host-ports.yaml
+  - policies/restrict-volume-types.yaml
+  - policies/disallow-capabilities-add.yaml
+  - policies/disallow-latest-tag.yaml
+
+  # Exceptions
+  - exceptions/falco.yaml
+  - exceptions/vault.yaml
+  - exceptions/cilium.yaml
+  - exceptions/immich.yaml
+  - exceptions/pinchflat.yaml
+  - exceptions/keycloak.yaml
+  - exceptions/github-runner.yaml
+  - exceptions/argocd.yaml
+  - exceptions/cert-manager.yaml
+  - exceptions/systems.yaml
+  - exceptions/kommande.yaml
+  - exceptions/games.yaml
+  - exceptions/uptime-kuma.yaml

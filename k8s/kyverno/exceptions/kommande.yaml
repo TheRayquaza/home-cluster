@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: kommande-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    # kommande mongodb
+    - resources:
+        kinds: ["Pod", "StatefulSet"]
+        namespaces: ["kommande"]
+        selector:
+          matchLabels:
+            app: mongodb
+

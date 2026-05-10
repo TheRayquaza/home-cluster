@@ -4,9 +4,6 @@ metadata:
   name: argocd-exception
   namespace: kyverno
 spec:
-  # argocd-redis and argocd-notifications-controller rely on pod-level securityContext
-  # for runAsNonRoot/seccompProfile; per-container fields are now set in the manifests.
-  # This exception is kept as a safety net during rolling rollouts until pods cycle.
   exceptions:
   - policyName: require-security-context
     ruleNames:
