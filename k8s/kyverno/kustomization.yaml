@@ -14,3 +14,4 @@ resources:
   - exception-writable-rootfs.yaml
   - exception-third-party.yaml
   - exception-keycloak.yaml
+  - exception-github-runner.yaml

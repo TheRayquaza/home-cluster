@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: github-runner-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-no-privilege-escalation
+    - require-seccomp
+    - require-drop-all-caps
+    - autogen-require-non-root
+    - autogen-require-no-privilege-escalation
+    - autogen-require-seccomp
+    - autogen-require-drop-all-caps
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  match:
+    any:
+    # ARC controller — runs as root to manage runner pods, needs writable fs
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["actions-runner-system"]
+    # Runner pods — summerwind/actions-runner runs as root, needs writable fs for job workspace
+    - resources:
+        kinds: ["Pod"]
+        namespaces: ["github-runner"]
