@@ -9,7 +9,7 @@ on:
 
 jobs:
   fmt:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
     steps:
@@ -19,7 +19,7 @@ jobs:
         run: terraform fmt -check -recursive terraform/
 
   tflint:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
     strategy:
