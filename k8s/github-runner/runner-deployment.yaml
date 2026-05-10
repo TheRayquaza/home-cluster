@@ -8,3 +8,4 @@ spec:
   template:
     spec:
       repository: TheRayquaza/home-cluster
+      image: summerwind/actions-runner:v2.334.0-ubuntu-22.04
