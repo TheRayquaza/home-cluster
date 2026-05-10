@@ -55,3 +55,18 @@ resource "vault_kv_secret_v2" "keycloak" {
     games-client-secret    = var.keycloak_games_client_secret
   })
 }
+
+# ==========================================
+# GitHub Runner Secrets
+# ==========================================
+
+resource "vault_kv_secret_v2" "github" {
+  mount = vault_mount.kv.path
+  name  = "github"
+
+  data_json = jsonencode({
+    pat             = var.github_runner_pat
+    pat-expiry      = var.github_runner_pat_expiry
+    discord-webhook = var.discord_webhook_url
+  })
+}

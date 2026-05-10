@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pat-expiry-check
+  namespace: github-runner
+spec:
+  schedule: "0 9 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+            - name: tmp
+              emptyDir:
+                medium: Memory
+          containers:
+            - name: checker
+              image: alpine:3.19
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  TODAY=$(date +%s)
+                  EXPIRY=$(date -D "%Y-%m-%d" -d "$PAT_EXPIRY" +%s)
+                  DIFF=$(( (EXPIRY - TODAY) / 86400 ))
+                  if [ "$DIFF" -le 3 ]; then
+                    wget -qO- \
+                      --post-data="{\"content\":\"GitHub PAT expires in ${DIFF} day(s) (${PAT_EXPIRY}). Rotate: update vault-secrets tfvars + terraform apply.\"}" \
+                      --header="Content-Type: application/json" \
+                      "$DISCORD_WEBHOOK"
+                  fi
+              env:
+                - name: PAT_EXPIRY
+                  valueFrom:
+                    secretKeyRef:
+                      name: github-runner-notify
+                      key: pat_expiry
+                - name: DISCORD_WEBHOOK
+                  valueFrom:
+                    secretKeyRef:
+                      name: github-runner-notify
+                      key: discord_webhook
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 16Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
+                readOnlyRootFilesystem: true
+              volumeMounts:
+                - mountPath: /tmp
+                  name: tmp
