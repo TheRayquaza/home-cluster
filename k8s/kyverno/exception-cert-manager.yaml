@@ -1,0 +1,22 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: cert-manager-exception
+  namespace: kyverno
+spec:
+  # cert-manager upstream Helm chart sets no resource limits and runs as root by default
+  exceptions:
+  - policyName: require-resource-limits
+    ruleNames:
+    - require-limits
+    - autogen-require-limits
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-seccomp
+    - autogen-require-non-root
+    - autogen-require-seccomp
+  match:
+    any:
+    - resources:
+        namespaces: ["cert-manager"]

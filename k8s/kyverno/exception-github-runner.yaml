@@ -22,13 +22,19 @@ spec:
   - policyName: disallow-privileged-containers
     ruleNames:
     - disallow-privileged
+    - autogen-disallow-privileged
+  - policyName: require-resource-limits
+    ruleNames:
+    - require-limits
+    - autogen-require-limits
+    - autogen-cronjob-require-limits
   match:
     any:
     # ARC controller — runs as root to manage runner pods, needs writable fs
     - resources:
         kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["actions-runner-system"]
-    # Runner pods — summerwind/actions-runner runs as root, needs writable fs for job workspace
+    # Runner pods and pat-expiry-check cronjob
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "CronJob"]
         namespaces: ["github-runner"]

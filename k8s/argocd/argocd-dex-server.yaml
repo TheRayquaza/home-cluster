@@ -99,6 +99,13 @@ spec:
           runAsUser: 1000
           seccompProfile:
             type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
         volumeMounts:
         - mountPath: /shared
           name: static-files

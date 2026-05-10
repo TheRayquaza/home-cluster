@@ -6,7 +6,9 @@ metadata:
 spec:
   exceptions:
   - policyName: require-readonly-rootfs
-    ruleNames: ["require-readonly-rootfs"]
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
   match:
     any:
     # games postgres
@@ -32,7 +34,7 @@ spec:
             app: postgres
     # keycloak needs writable fs for /tmp and cache dirs
     - resources:
-        kinds: ["Pod", "StatefulSet"]
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["idp"]
         selector:
           matchLabels:

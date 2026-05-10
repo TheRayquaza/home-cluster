@@ -45,12 +45,6 @@ spec:
           enabled: true
           keep: true
 
-        webhook:
-          networkPolicy:
-            enabled: false
-          timeoutSeconds: 10
-          hostNetwork: false
-
         serviceAccount:
           create: true
           automountServiceAccountToken: true
@@ -67,6 +61,9 @@ spec:
           requests:
             cpu: 100m
             memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
 
         securityContext:
           runAsNonRoot: true
@@ -78,11 +75,52 @@ spec:
           capabilities:
             drop: ["ALL"]
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
 
         enableServiceLinks: false
 
         prometheus:
           enabled: true
+
+        webhook:
+          networkPolicy:
+            enabled: false
+          timeoutSeconds: 10
+          hostNetwork: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+
+        cainjector:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
 
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main

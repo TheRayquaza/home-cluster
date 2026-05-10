@@ -11,36 +11,34 @@ spec:
     - require-no-privilege-escalation
     - require-seccomp
     - require-drop-all-caps
+    - autogen-require-non-root
+    - autogen-require-no-privilege-escalation
+    - autogen-require-seccomp
+    - autogen-require-drop-all-caps
   - policyName: require-readonly-rootfs
-    ruleNames: ["require-readonly-rootfs"]
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
   match:
     any:
     # immich: upstream images run as root and write to filesystem
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["immich"]
         selector:
           matchLabels:
             app: immich
     # pinchflat: community image, writes to /config and /downloads
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["pinchflat"]
         selector:
           matchLabels:
             app: pinchflat
     # uptime-kuma: writes SQLite to /app/data
     - resources:
-        kinds: ["Pod"]
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
         namespaces: ["uptime-kuma"]
         selector:
           matchLabels:
             app: uptime-kuma
-    # games-frontend: nginx:alpine v0.2.0 replaced by nginx-unprivileged in v0.3.0
-    # remove this entry once v0.3.0 image is deployed
-    - resources:
-        kinds: ["Pod", "Deployment", "ReplicaSet"]
-        namespaces: ["games"]
-        selector:
-          matchLabels:
-            app: games-frontend

@@ -318,6 +318,13 @@ spec:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 250m
+            memory: 256Mi
+          limits:
+            cpu: 2000m
+            memory: 1Gi
         volumeMounts:
         - mountPath: /app/config/controller/tls
           name: argocd-repo-server-tls

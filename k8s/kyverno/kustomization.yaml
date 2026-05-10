@@ -15,3 +15,6 @@ resources:
   - exception-third-party.yaml
   - exception-keycloak.yaml
   - exception-github-runner.yaml
+  - exception-argocd.yaml
+  - exception-cert-manager.yaml
+  - exception-systems.yaml

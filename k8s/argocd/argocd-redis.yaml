@@ -73,6 +73,16 @@ spec:
             drop:
             - ALL
           readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
       initContainers:
       - command:
         - argocd

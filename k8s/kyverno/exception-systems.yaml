@@ -1,0 +1,37 @@
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: systems-exception
+  namespace: kyverno
+spec:
+  exceptions:
+  - policyName: require-resource-limits
+    ruleNames:
+    - require-limits
+    - autogen-require-limits
+    - autogen-cronjob-require-limits
+  - policyName: require-security-context
+    ruleNames:
+    - require-non-root
+    - require-seccomp
+    - autogen-require-non-root
+    - autogen-require-seccomp
+  match:
+    any:
+    # kyverno clean-reports job has no resource limits in upstream chart
+    - resources:
+        namespaces: ["kyverno"]
+    # local-path-provisioner: upstream runs as root (requires host path access)
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["local-path-provisioner"]
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: local-path-provisioner
+    # trivy-operator: upstream chart runs as root to scan container images
+    - resources:
+        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        namespaces: ["trivy-system"]
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: trivy-operator
