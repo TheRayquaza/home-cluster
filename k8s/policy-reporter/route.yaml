@@ -5,7 +5,9 @@ metadata:
   namespace: policy-reporter
 spec:
   parentRefs:
-    - name: private-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: private-gateway
       namespace: default
       sectionName: policy-reporter-https
   hostnames:
@@ -16,5 +18,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: policy-reporter-ui
+        - group: ''
+          kind: Service
+          name: policy-reporter-ui
           port: 8080
+          weight: 1

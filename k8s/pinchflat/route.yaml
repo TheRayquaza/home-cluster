@@ -6,7 +6,9 @@ metadata:
   namespace: pinchflat
 spec:
   parentRefs:
-    - name: private-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: private-gateway
       namespace: default
       sectionName: pinchflat-https
   hostnames:
@@ -17,5 +19,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-      - name: pinchflat-service
+      - group: ''
+        kind: Service
+        name: pinchflat-service
         port: 8945
+        weight: 1

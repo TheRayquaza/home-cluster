@@ -5,7 +5,9 @@ metadata:
   namespace: games
 spec:
   parentRefs:
-    - name: private-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: private-gateway
       namespace: default
       sectionName: games-https
   hostnames:
@@ -16,19 +18,28 @@ spec:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: games-backend-service
+        - group: ''
+          kind: Service
+          name: games-backend-service
           port: 8080
+          weight: 1
     - matches:
         - path:
             type: PathPrefix
             value: /ws
       backendRefs:
-        - name: games-backend-service
+        - group: ''
+          kind: Service
+          name: games-backend-service
           port: 8080
+          weight: 1
     - matches:
         - path:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: games-frontend-service
+        - group: ''
+          kind: Service
+          name: games-frontend-service
           port: 80
+          weight: 1

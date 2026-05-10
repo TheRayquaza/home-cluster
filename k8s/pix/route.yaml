@@ -6,7 +6,9 @@ metadata:
   namespace: pix
 spec:
   parentRefs:
-    - name: private-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: private-gateway
       namespace: default
       sectionName: pix-https
   hostnames:
@@ -17,5 +19,8 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-      - name: pix-service
+      - group: ''
+        kind: Service
+        name: pix-service
         port: 8080
+        weight: 1
