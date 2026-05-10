@@ -1,0 +1,16 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: HorizontalRunnerAutoscaler
+metadata:
+  name: org-runner-hra
+  namespace: github-runner
+spec:
+  scaleTargetRef:
+    name: org-runner
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: PercentageRunnersBusy
+      scaleUpThreshold: "0.75"
+      scaleDownThreshold: "0.25"
+      scaleUpAdjustment: 1
+      scaleDownAdjustment: 1

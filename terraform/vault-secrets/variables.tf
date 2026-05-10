@@ -64,3 +64,23 @@ variable "keycloak_games_client_secret" {
   default     = ""
 }
 
+# GitHub Runner variables
+
+variable "github_runner_pat" {
+  description = "GitHub classic PAT for actions-runner-controller (scope: admin:org)"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_runner_pat_expiry" {
+  description = "Expiry date of the GitHub PAT (YYYY-MM-DD) — update on each rotation"
+  type        = string
+  sensitive   = true
+}
+
+variable "discord_webhook_url" {
+  description = "Discord webhook URL for PAT expiry notifications"
+  type        = string
+  sensitive   = true
+}
+

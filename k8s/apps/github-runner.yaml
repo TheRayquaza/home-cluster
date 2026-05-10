@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: github-runner
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  destination:
+    name: in-cluster
+    namespace: actions-runner-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+  sources:
+  - repoURL: https://actions-runner-controller.github.io/actions-runner-controller
+    chart: actions-runner-controller
+    targetRevision: 0.23.7
+    helm:
+      releaseName: actions-runner-controller
+      values: |
+        authSecret:
+          create: false
+          name: controller-manager
+
+        certManagerEnabled: true
+
+        scope:
+          singleNamespace: false
+
+        replicaCount: 1
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+
+        serviceAccount:
+          create: true
+
+  - repoURL: https://github.com/TheRayquaza/home-cluster.git
+    targetRevision: main
+    path: k8s/github-runner
