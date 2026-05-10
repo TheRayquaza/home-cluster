@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must not bind to host ports — use a Service instead"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][].ports[]"
         deny:

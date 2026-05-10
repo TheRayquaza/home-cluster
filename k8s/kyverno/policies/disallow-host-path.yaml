@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system", "falco"]
+    skipBackgroundRequests: true
     validate:
       message: "hostPath volumes are not allowed"
+      allowExistingViolations: true
       deny:
         conditions:
           any:

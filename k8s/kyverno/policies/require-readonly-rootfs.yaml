@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must set readOnlyRootFilesystem=true"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         pattern:

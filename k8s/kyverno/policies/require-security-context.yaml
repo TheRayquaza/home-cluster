@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must set runAsNonRoot=true"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         pattern:
@@ -31,8 +33,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must set allowPrivilegeEscalation=false"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         pattern:
@@ -47,8 +51,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must use RuntimeDefault seccomp profile"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         pattern:
@@ -64,8 +70,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must drop ALL capabilities"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         deny:

@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Privileged containers are not allowed"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         deny:

@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Use of host namespaces (hostPID, hostIPC, hostNetwork) is not allowed"
+      allowExistingViolations: true
       deny:
         conditions:
           any:

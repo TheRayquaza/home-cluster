@@ -16,8 +16,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Containers must declare resource limits for CPU and memory"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.containers"
         pattern:

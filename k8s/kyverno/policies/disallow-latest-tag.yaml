@@ -16,8 +16,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Images must use a specific tag or digest, not :latest"
+      allowExistingViolations: true
       foreach:
       - list: "request.object.spec.[containers, initContainers][]"
         deny:

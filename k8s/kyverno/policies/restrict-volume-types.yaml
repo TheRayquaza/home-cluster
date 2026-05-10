@@ -15,8 +15,10 @@ spec:
       any:
       - resources:
           namespaces: ["kube-system"]
+    skipBackgroundRequests: true
     validate:
       message: "Only safe volume types are allowed: configMap, downwardAPI, emptyDir, ephemeral, persistentVolumeClaim, projected, secret, serviceAccountToken, csi"
+      allowExistingViolations: true
       deny:
         conditions:
           any:
