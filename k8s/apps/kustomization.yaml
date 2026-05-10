@@ -21,3 +21,4 @@ resources:
   - games.yaml
   - idp.yaml
   - policy-reporter.yaml
+  - github-runner.yaml
