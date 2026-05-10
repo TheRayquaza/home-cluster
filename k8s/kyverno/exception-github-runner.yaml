@@ -19,6 +19,9 @@ spec:
     ruleNames:
     - require-readonly-rootfs
     - autogen-require-readonly-rootfs
+  - policyName: disallow-privileged-containers
+    ruleNames:
+    - disallow-privileged
   match:
     any:
     # ARC controller — runs as root to manage runner pods, needs writable fs
