@@ -1,0 +1,6 @@
+checks:
+  exclude:
+    - "no-anti-affinity"
+    - "required-label-owner"
+    - "no-liveness-probe"
+    - "no-readiness-probe"

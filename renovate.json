@@ -26,6 +26,10 @@
     "fileMatch": ["(^|/)apps/.+/docker-compose\\.ya?ml$"]
   },
 
+  "terraform": {
+    "fileMatch": ["(^|/)terraform/.+\\.tf$"]
+  },
+
   "customManagers": [
     {
       "customType": "regex",
@@ -102,6 +106,12 @@
       "matchManagers": ["gomod", "npm"],
       "automerge": false,
       "automergeType": "pr"
+    },
+    {
+      "description": "Group all Terraform provider updates",
+      "matchManagers": ["terraform"],
+      "groupName": "terraform providers",
+      "labels": ["dependencies", "terraform"]
     },
     {
       "description": "Pin digest for golang and node base images for reproducibility",
