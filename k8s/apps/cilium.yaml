@@ -43,11 +43,19 @@ spec:
             enabled: true
 
           # -------------------------------------------------------------------
-          # kube-proxy replacement
+          # kube-proxy replacement & Devices
           # -------------------------------------------------------------------
           kubeProxyReplacement: true
           k8sServiceHost: "10.20.0.1"
           k8sServicePort: "6443"
+
+          # Restrict NodePort lookup so Cilium does not intercept UDP 51820
+          nodePort:
+            range: "30000,32767"
+
+          # Prevent host socket interception for non-pod host daemons
+          hostServices:
+            hostNamespaceOnly: true
 
           # -------------------------------------------------------------------
           # BPF & datapath
