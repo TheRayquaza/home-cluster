@@ -61,13 +61,35 @@ spec:
           # BPF & datapath
           # -------------------------------------------------------------------
           bpf:
-            masquerade: true
+            masquerade: false
+            # BPF masquerade disabled: Cilium's BPF datapath on eno1 black-holes
+            # host SSH on this single-node box (lockout whenever BPF attaches to
+            # the physical NIC). Falling back to iptables/NAT masquerade keeps
+            # pod egress working while entirely decoupling it from BPF-on-eno1.
+            # (kernel ip-masq-agent / iptables SNAT handles pod->internet.)
+            hostRouting: false
+
+          # Scope the datapath devices explicitly: only the physical uplink
+          # (no interface churn from the tunnel devices being treated as
+          # datapath interfaces).
+          devices: "eno1"
 
           # -------------------------------------------------------------------
-          # Host firewall — enables CiliumClusterwideNetworkPolicy for nodes
+          # Host firewall — DISABLED.
+          # Keep off: the legacy behavior caused host/loopback traffic drops.
+          # Host firewall isn't needed on this single-node cluster.
           # -------------------------------------------------------------------
           hostFirewall:
-            enabled: true
+            enabled: false
+
+          # -------------------------------------------------------------------
+          # DNS proxy — disable transparent (socket-level) DNS interception.
+          # In transparent mode Cilium hijacks DNS queries at the eBPF socket
+          # layer, recursively black-holing CoreDNS upstream lookups and
+          # breaking pod/host resolution -> cert-manager ACME fails.
+          # -------------------------------------------------------------------
+          dnsProxy:
+            enableTransparentMode: false
 
           # -------------------------------------------------------------------
           # Metrics & monitoring
