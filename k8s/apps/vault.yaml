@@ -40,8 +40,24 @@ spec:
 
           image:
             repository: hashicorp/vault
-            tag: "1.21.4"
+            tag: "2.0.4"
             pullPolicy: IfNotPresent
+
+          # -------------------------------------------------------------------
+          # Vault 2.x container guards.
+          # - SKIP_SETCAP=1: bypass the entrypoint setcap check that fails on
+          #   unprivileged 2.0.x images ("unable to set CAP_SETFCAP").
+          # -------------------------------------------------------------------
+          extraEnvironmentVars:
+            SKIP_SETCAP: "1"
+
+          # Keep mlock working without granting anything else: the 2.0 images
+          # run as non-root and need IPC_LOCK to lock memory.
+          securityContext:
+            container:
+              capabilities:
+                add:
+                  - IPC_LOCK
 
           topologySpreadConstraints:
             - maxSkew: 1
