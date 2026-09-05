@@ -1,0 +1,31 @@
+---
+- name: Set SSH port
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port\s+.*'
+    line: "Port {{ sshd_port | default(22001) }}"
+    state: present
+  notify: restart sshd
+
+- name: Remove all existing ListenAddress lines
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ListenAddress\s+.*'
+    state: absent
+  notify: restart sshd
+
+- name: Remove commented ListenAddress lines
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#ListenAddress\s+.*'
+    state: absent
+  notify: restart sshd
+
+- name: Set SSH to listen only on the WireGuard server interfaces
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "ListenAddress {{ item.value.server_ip }}"
+    state: present
+  loop: "{{ wg_networks | dict2items }}"
+  when: item.value.mode in ['server', 'both'] and item.value.server_ip is defined
+  notify: restart sshd

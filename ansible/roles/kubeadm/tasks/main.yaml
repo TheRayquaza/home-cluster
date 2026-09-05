@@ -60,6 +60,13 @@
   when: inventory_hostname == groups['master'][0]
 
 # ---------------------------------------------------------
+# POST-INIT: Isolate control-plane to loopback (idempotent)
+# ---------------------------------------------------------
+- name: Enforce loopback isolation on control-plane
+  include_tasks: loopback.yaml
+  when: inventory_hostname == groups['master'][0]
+
+# ---------------------------------------------------------
 # JOIN LOGIC (Run on workers or secondary masters)
 # ---------------------------------------------------------
 - name: Join Cluster
@@ -78,7 +85,7 @@
       lineinfile:
         path: /etc/default/kubelet
         regexp: '^KUBELET_EXTRA_ARGS='
-        line: 'KUBELET_EXTRA_ARGS="--node-ip={{ wg_server_ip }}"'
+        line: 'KUBELET_EXTRA_ARGS="--node-ip={{ wireguard_node_ip }}"'
       notify: Restart kubelet
 
   when: inventory_hostname != groups['master'][0]
