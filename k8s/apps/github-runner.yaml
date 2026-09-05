@@ -20,22 +20,18 @@ spec:
       - ServerSideApply=true
 
   sources:
-  - repoURL: https://actions-runner-controller.github.io/actions-runner-controller
-    chart: actions-runner-controller
-    targetRevision: 0.23.7
+  - repoURL: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+    chart: gha-runner-scale-set-controller
+    targetRevision: 0.14.2
+    destination:
+      namespace: actions-runner-system
     helm:
-      releaseName: actions-runner-controller
+      releaseName: gha-runner-scale-set-controller
       values: |
-        authSecret:
-          create: false
-          name: controller-manager
-
-        certManagerEnabled: true
-
-        scope:
-          singleNamespace: false
-
         replicaCount: 1
+
+        serviceAccount:
+          create: true
 
         resources:
           requests:
@@ -45,19 +41,42 @@ spec:
             cpu: 500m
             memory: 256Mi
 
-        securityContext:
+        podSecurityContext:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
 
-        containerSecurityContext:
+        securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop: ["ALL"]
 
-        serviceAccount:
-          create: true
+  - repoURL: ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+    chart: gha-runner-scale-set
+    targetRevision: 0.14.2
+    destination:
+      namespace: github-runner
+    helm:
+      releaseName: home-cluster
+      values: |
+        githubConfigUrl: https://github.com/TheRayquaza/home-cluster
+
+        runnerScaleSetName: home-cluster
+
+        githubConfigSecret: github-token
+
+        minRunners: 1
+        maxRunners: 5
+
+        containerMode:
+          type: dind
+
+        controllerServiceAccount:
+          namespace: actions-runner-system
+          name: gha-runner-scale-set-controller
 
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/github-runner
+    destination:
+      namespace: github-runner

@@ -9,7 +9,7 @@ on:
 
 jobs:
   kubeconform:
-    runs-on: self-hosted
+    runs-on: [self-hosted, home-cluster]
     permissions:
       contents: read
     steps:
@@ -31,7 +31,7 @@ jobs:
                 -summary
 
   kube-linter:
-    runs-on: self-hosted
+    runs-on: [self-hosted, home-cluster]
     permissions:
       contents: read
     steps:

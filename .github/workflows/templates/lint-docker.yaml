@@ -10,7 +10,7 @@ on:
 
 jobs:
   hadolint:
-    runs-on: self-hosted
+    runs-on: [self-hosted, home-cluster]
     permissions:
       contents: read
     steps:

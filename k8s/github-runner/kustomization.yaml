@@ -3,6 +3,4 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - external-secret.yaml
-  - runner-deployment.yaml
-  - horizontal-runner-autoscaler.yaml
   - pat-expiry-cronjob.yaml

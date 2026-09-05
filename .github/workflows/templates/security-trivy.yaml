@@ -19,7 +19,7 @@ on:
 
 jobs:
   trivy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, home-cluster]
     permissions:
       contents: read
       security-events: write

@@ -19,7 +19,7 @@ jobs:
 
   attest:
     needs: build
-    runs-on: self-hosted
+    runs-on: [self-hosted, home-cluster]
     permissions:
       id-token: write
       attestations: write

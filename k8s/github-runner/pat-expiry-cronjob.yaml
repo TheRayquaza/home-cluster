@@ -29,7 +29,12 @@ spec:
                   TODAY=$(date +%s)
                   EXPIRY=$(date -D "%Y-%m-%d" -d "$PAT_EXPIRY" +%s)
                   DIFF=$(( (EXPIRY - TODAY) / 86400 ))
-                  if [ "$DIFF" -le 3 ]; then
+                  if [ "$DIFF" -lt 0 ]; then
+                    wget -qO- \
+                      --post-data="{\"content\":\"GitHub PAT EXPIRED ${DIFF#-} day(s) ago (${PAT_EXPIRY}). Rotate NOW: update vault-secrets tfvars + terraform apply.\"}" \
+                      --header="Content-Type: application/json" \
+                      "$DISCORD_WEBHOOK"
+                  elif [ "$DIFF" -le 3 ]; then
                     wget -qO- \
                       --post-data="{\"content\":\"GitHub PAT expires in ${DIFF} day(s) (${PAT_EXPIRY}). Rotate: update vault-secrets tfvars + terraform apply.\"}" \
                       --header="Content-Type: application/json" \
