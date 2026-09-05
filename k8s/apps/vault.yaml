@@ -44,15 +44,11 @@ spec:
             pullPolicy: IfNotPresent
 
           # -------------------------------------------------------------------
-          # Vault 2.x container guards.
-          # - SKIP_SETCAP=1: bypass the entrypoint setcap check that fails on
-          #   unprivileged 2.0.x images ("unable to set CAP_SETFCAP").
+          # Vault 2.x container guard: the 2.0 images run as an unprivileged
+          # user and need IPC_LOCK to lock memory (mlock). No SKIP_SETCAP
+          # override needed — chart 0.34.1 already sets SKIP_SETCAP=true
+          # itself (duplicating it breaks ArgoCD's diff).
           # -------------------------------------------------------------------
-          extraEnvironmentVars:
-            SKIP_SETCAP: "1"
-
-          # Keep mlock working without granting anything else: the 2.0 images
-          # run as non-root and need IPC_LOCK to lock memory.
           securityContext:
             container:
               capabilities:
