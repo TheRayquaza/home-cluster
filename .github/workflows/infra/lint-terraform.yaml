@@ -9,7 +9,7 @@ on:
 
 jobs:
   fmt:
-    runs-on: [self-hosted, home-cluster]
+    runs-on: [home-cluster]
     permissions:
       contents: read
     steps:
@@ -19,7 +19,7 @@ jobs:
         run: terraform fmt -check -recursive terraform/
 
   tflint:
-    runs-on: [self-hosted, home-cluster]
+    runs-on: [home-cluster]
     permissions:
       contents: read
     strategy:

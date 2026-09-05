@@ -10,7 +10,7 @@ on:
 
 jobs:
   typecheck:
-    runs-on: [self-hosted, home-cluster]
+    runs-on: [home-cluster]
     permissions:
       contents: read
     steps:
