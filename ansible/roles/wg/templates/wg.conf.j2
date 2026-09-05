@@ -1,13 +1,14 @@
+{% set addresses = wg_net.value.addresses | default([wg_net.value.server_ip ~ '/32']) %}
 [Interface]
-Address = {{ wg_server_ip }}, 10.20.0.100/32
-ListenPort = {{ wg_port }}
-PrivateKey = {{ wg_private_key }}
+Address = {{ addresses | join(', ') }}
+ListenPort = {{ wg_net.value.port }}
+PrivateKey = {{ wg_net.value.private_key }}
 
 # PostUp/PostDown rules for NAT
-PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ wan_interface }} -j MASQUERADE
-PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ wan_interface }} -j MASQUERADE
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o {{ wg_net.value.wan_interface }} -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT; iptables -t nat -D POSTROUTING -o {{ wg_net.value.wan_interface }} -j MASQUERADE
 
-{% for client in wg_clients %}
+{% for client in wg_net.value.clients | default([]) %}
 # {{ client.name }}
 [Peer]
 PublicKey = {{ client.public_key }}

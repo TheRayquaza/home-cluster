@@ -1,0 +1,13 @@
+---
+- name: Copy WireGuard client configuration {{ wg_net.key }}
+  copy:
+    src: "./static/wg/{{ wg_net.key }}/{{ wg_net.value.client_name }}.conf"
+    dest: "/etc/wireguard/{{ wg_net.value.interface | default(wg_net.key) }}.conf"
+    mode: '0600'
+  notify: restart wireguard
+
+- name: Enable and start WireGuard client {{ wg_net.key }}
+  systemd:
+    name: "wg-quick@{{ wg_net.value.interface | default(wg_net.key) }}"
+    enabled: yes
+    state: started

@@ -1,0 +1,9 @@
+---
+# Per-host WireGuard networks keyed by interface name.
+# Each entry supports:
+#   mode: server | client | both
+#   server-only: server_ip, addresses, port, private_key, public_key,
+#                wan_interface, nat_subnet, clients, public_ip,
+#                clients_allowed_ips
+#   client-only: client_name, client_ip, interface (defaults to the key)
+wg_networks: {}

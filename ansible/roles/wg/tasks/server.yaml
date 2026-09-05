@@ -1,0 +1,78 @@
+---
+- name: Generate WireGuard server configuration
+  template:
+    src: wg.conf.j2
+    dest: "/etc/wireguard/{{ wg_net.key }}.conf"
+    mode: '0600'
+  notify: restart wireguard
+
+- name: Enable and start WireGuard server
+  systemd:
+    name: "wg-quick@{{ wg_net.key }}"
+    enabled: yes
+    state: started
+
+- name: Allow WireGuard UDP port
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: "{{ wg_net.value.port | string }}"
+    jump: ACCEPT
+    action: insert
+    comment: "WireGuard {{ wg_net.key }} incoming traffic"
+
+- name: Allow forwarding from WireGuard subnet
+  ansible.builtin.iptables:
+    chain: FORWARD
+    source: "{{ wg_net.value.nat_subnet }}"
+    jump: ACCEPT
+    action: insert
+    comment: "Allow WireGuard {{ wg_net.key }} subnet forwarding"
+
+- name: Enable NAT (MASQUERADE) for WireGuard clients
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ wg_net.value.nat_subnet }}"
+    out_interface: "{{ wg_net.value.wan_interface | default(ansible_default_ipv4.interface) }}"
+    jump: MASQUERADE
+    comment: "NAT for WireGuard {{ wg_net.key }} clients"
+
+- name: Install iptables-persistent package
+  apt:
+    name: iptables-persistent
+    state: present
+  when: ansible_os_family == "Debian"
+  run_once: true
+
+- name: Persist iptables rules
+  ansible.builtin.shell: |
+    netfilter-persistent save
+  changed_when: false
+  ignore_errors: true
+  run_once: true
+
+- name: Setup directory for static WireGuard client configs
+  delegate_to: localhost
+  become: false
+  run_once: true
+  vars:
+    ansible_connection: local
+  file:
+    path: "./static/wg/{{ wg_net.key }}"
+    state: directory
+    mode: '0700'
+
+- name: Render all WireGuard client configurations locally
+  delegate_to: localhost
+  become: false
+  run_once: true
+  vars:
+    ansible_connection: local
+  template:
+    src: wg-client.conf.j2
+    dest: "./static/wg/{{ wg_net.key }}/{{ client.name }}.conf"
+    mode: '0600'
+  loop: "{{ wg_net.value.clients | default([]) }}"
+  loop_control:
+    loop_var: client
