@@ -19,6 +19,22 @@ spec:
       - CreateNamespace=true
       - ServerSideApply=true
 
+  ignoreDifferences:
+    - group: ""
+      kind: ServiceAccount
+      name: home-cluster-gha-rs-no-permission
+      namespace: actions-runner-system
+    - group: rbac.authorization.k8s.io
+      kind: Role
+      name: home-cluster-gha-rs-manager
+      namespace: actions-runner-system
+    - group: rbac.authorization.k8s.io
+      kind: RoleBinding
+      name: home-cluster-gha-rs-manager
+      namespace: actions-runner-system
+    - group: actions.github.com
+      kind: AutoscalingRunnerSet
+
   sources:
   - repoURL: ghcr.io/actions/actions-runner-controller-charts
     chart: gha-runner-scale-set-controller
