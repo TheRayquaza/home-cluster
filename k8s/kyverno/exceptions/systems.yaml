@@ -14,8 +14,20 @@ spec:
     ruleNames:
     - require-non-root
     - require-seccomp
+    - require-drop-all-caps
+    - require-no-privilege-escalation
     - autogen-require-non-root
     - autogen-require-seccomp
+    - autogen-require-drop-all-caps
+    - autogen-require-no-privilege-escalation
+  - policyName: require-readonly-rootfs
+    ruleNames:
+    - require-readonly-rootfs
+    - autogen-require-readonly-rootfs
+  - policyName: disallow-host-path
+    ruleNames:
+    - disallow-host-path
+    - autogen-disallow-host-path
   match:
     any:
     # kyverno clean-reports job has no resource limits in upstream chart
@@ -23,7 +35,7 @@ spec:
         namespaces: ["kyverno"]
     # local-path-provisioner: upstream runs as root (requires host path access)
     - resources:
-        kinds: ["Pod", "Deployment", "ReplicaSet"]
+        kinds: ["Pod", "Deployment", "ReplicaSet", "StatefulSet"]
         namespaces: ["local-path-provisioner"]
         selector:
           matchLabels:
