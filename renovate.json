@@ -11,8 +11,7 @@
   "dependencyDashboardTitle": "Renovate Dependency Dashboard",
 
   "minimumMergeConfidence": "high",
-  "automerge": true,
-  "automergeType": "pr",
+  "automerge": false,
 
   "argocd": {
     "fileMatch": ["(^|/)k8s/apps/.+\\.yaml$"]
@@ -105,10 +104,11 @@
       "labels": ["dependencies", "docker"]
     },
     {
-      "description": "Auto-merge Go and npm patch updates",
-      "matchUpdateTypes": ["patch"],
-      "matchManagers": ["gomod", "npm"],
-      "automergeType": "pr"
+      "description": "Auto-merge Go updates with high merge confidence",
+      "matchManagers": ["gomod"],
+      "automerge": true,
+      "automergeType": "pr",
+      "labels": ["dependencies", "go", "automerge"]
     },
     {
       "description": "Group all Terraform provider updates",
