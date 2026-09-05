@@ -47,13 +47,17 @@ spec:
           # Vault 2.x container guard: the 2.0 images run as an unprivileged
           # user and need IPC_LOCK to lock memory (mlock). No SKIP_SETCAP
           # override needed — chart 0.34.1 already sets SKIP_SETCAP=true
-          # itself (duplicating it breaks ArgoCD's diff).
+          # itself (duplicating it breaks ArgoCD's diff). Correct values
+          # path is server.statefulSet.securityContext; the block replaces
+          # the chart default, so restate allowPrivilegeEscalation.
           # -------------------------------------------------------------------
-          securityContext:
-            container:
-              capabilities:
-                add:
-                  - IPC_LOCK
+          statefulSet:
+            securityContext:
+              container:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  add:
+                    - IPC_LOCK
 
           topologySpreadConstraints:
             - maxSkew: 1
