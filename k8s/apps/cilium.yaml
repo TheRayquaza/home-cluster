@@ -43,6 +43,15 @@ spec:
             enabled: true
 
           # -------------------------------------------------------------------
+          # L2 announcements — announce gateway LB VIPs on the LAN (ARP/GARP)
+          # on the configured device. Required so the dedicated gateway VIP
+          # 192.168.1.151 is reachable from the network once the router's
+          # HTTP/S port-forward points at it instead of the host IP .38.
+          # -------------------------------------------------------------------
+          l2Announcements:
+            enabled: true
+
+          # -------------------------------------------------------------------
           # kube-proxy replacement & Devices
           # -------------------------------------------------------------------
           kubeProxyReplacement: true
