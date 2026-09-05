@@ -10,6 +10,10 @@
   "labels": ["dependencies"],
   "dependencyDashboardTitle": "Renovate Dependency Dashboard",
 
+  "minimumMergeConfidence": "high",
+  "automerge": true,
+  "automergeType": "pr",
+
   "argocd": {
     "fileMatch": ["(^|/)k8s/apps/.+\\.yaml$"]
   },
@@ -104,7 +108,6 @@
       "description": "Auto-merge Go and npm patch updates",
       "matchUpdateTypes": ["patch"],
       "matchManagers": ["gomod", "npm"],
-      "automerge": false,
       "automergeType": "pr"
     },
     {
