@@ -47,8 +47,9 @@ spec:
           # on the configured device. Required so the dedicated gateway VIP
           # 192.168.1.151 is reachable from the network once the router's
           # HTTP/S port-forward points at it instead of the host IP .38.
+          # Note the chart key is lowercase "l2announcements" in 1.19.x.
           # -------------------------------------------------------------------
-          l2Announcements:
+          l2announcements:
             enabled: true
 
           # -------------------------------------------------------------------
