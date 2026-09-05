@@ -31,6 +31,7 @@ metadata:
   name: argocd-applicationset-controller
   namespace: argocd
 spec:
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: argocd-applicationset-controller

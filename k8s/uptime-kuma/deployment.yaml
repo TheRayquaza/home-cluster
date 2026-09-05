@@ -6,6 +6,7 @@ metadata:
   labels:
     app: uptime-kuma
 spec:
+  revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:

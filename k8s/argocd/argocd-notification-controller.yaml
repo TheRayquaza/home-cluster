@@ -48,6 +48,7 @@ metadata:
   name: argocd-notifications-controller
   namespace: argocd
 spec:
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: argocd-notifications-controller

@@ -6,6 +6,7 @@ metadata:
   labels:
     app: games-frontend
 spec:
+  revisionHistoryLimit: 0
   replicas: 1
   selector:
     matchLabels:

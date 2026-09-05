@@ -36,6 +36,7 @@ metadata:
   name: argocd-dex-server
   namespace: argocd
 spec:
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: argocd-dex-server

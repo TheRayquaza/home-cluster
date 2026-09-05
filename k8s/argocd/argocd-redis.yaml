@@ -26,6 +26,7 @@ metadata:
   name: argocd-redis
   namespace: argocd
 spec:
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: argocd-redis
