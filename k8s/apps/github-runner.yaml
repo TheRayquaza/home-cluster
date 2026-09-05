@@ -75,7 +75,7 @@ spec:
 
         controllerServiceAccount:
           namespace: actions-runner-system
-          name: gha-runner-scale-set-controller
+          name: gha-runner-scale-set-controller-gha-rs-controller
 
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
