@@ -3,6 +3,8 @@ kind: StatefulSet
 metadata:
   name: postgres
   namespace: idp
+  labels:
+    app: postgres
 spec:
   serviceName: postgres
   replicas: 1
@@ -22,7 +24,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: postgres
-          image: postgres:17-alpine
+          image: postgres:18-alpine
           ports:
             - containerPort: 5432
           env:
@@ -44,7 +46,7 @@ spec:
               type: RuntimeDefault
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
             - name: run
               mountPath: /var/run/postgresql
           resources:
