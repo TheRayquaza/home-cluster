@@ -12,4 +12,4 @@ metadata:
   name: public-pool
 spec:
   blocks:
-  - cidr: 192.168.1.38/32
+  - cidr: 192.168.1.151/32
