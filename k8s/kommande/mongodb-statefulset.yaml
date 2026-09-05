@@ -3,6 +3,8 @@ kind: StatefulSet
 metadata:
   name: mongodb
   namespace: kommande
+  labels:
+    app: mongodb
 spec:
   serviceName: mongodb
   replicas: 1
