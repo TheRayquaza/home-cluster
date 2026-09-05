@@ -63,6 +63,8 @@ spec:
 
         runnerScaleSetName: home-cluster
 
+        namespaceOverride: github-runner
+
         githubConfigSecret: github-token
 
         minRunners: 1
