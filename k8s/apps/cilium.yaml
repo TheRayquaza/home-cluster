@@ -24,7 +24,7 @@ spec:
   sources:
     - repoURL: https://helm.cilium.io/
       chart: cilium
-      targetRevision: 1.19.3
+      targetRevision: 1.20.1
       helm:
         values: |
           # -------------------------------------------------------------------
@@ -47,7 +47,7 @@ spec:
           # on the configured device. Required so the dedicated gateway VIP
           # 192.168.1.151 is reachable from the network once the router's
           # HTTP/S port-forward points at it instead of the host IP .38.
-          # Note the chart key is lowercase "l2announcements" in 1.19.x.
+          # Note the chart key is lowercase "l2announcements" in 1.19.x+.
           # -------------------------------------------------------------------
           l2announcements:
             enabled: true
