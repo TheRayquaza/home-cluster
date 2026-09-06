@@ -1,0 +1,23 @@
+name: Lint - Kubernetes
+
+on:
+  pull_request:
+    paths:
+      - k8s/**
+      - .kube-linter.yaml
+      - .github/workflows/infra/k8s.yaml
+      - .github/workflows/templates/lint-k8s.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - k8s/**
+      - .kube-linter.yaml
+      - .github/workflows/infra/k8s.yaml
+      - .github/workflows/templates/lint-k8s.yaml
+
+jobs:
+  lint:
+    uses: ./.github/workflows/templates/lint-k8s.yaml
+    permissions:
+      contents: read

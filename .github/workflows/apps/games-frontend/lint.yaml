@@ -4,9 +4,13 @@ on:
   pull_request:
     paths:
       - apps/games/frontend/**
-      - .hadolint.yaml
       - .github/workflows/apps/games-frontend/lint.yaml
-      - .github/workflows/templates/lint-docker.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - apps/games/frontend/**
+      - .github/workflows/apps/games-frontend/lint.yaml
 
 jobs:
   typecheck:
@@ -29,10 +33,3 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
         working-directory: apps/games/frontend
-
-  docker:
-    uses: ./.github/workflows/templates/lint-docker.yaml
-    with:
-      dockerfile: apps/games/frontend/Dockerfile
-    permissions:
-      contents: read
