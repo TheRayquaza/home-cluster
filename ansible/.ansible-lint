@@ -1,9 +1,12 @@
+---
 exclude_paths:
   - .cache/
 
 skip_list:
   - yaml[truthy]
   - name[casing]
+  - var-naming[no-role-prefix]
+  - yaml[line-length]
 
 warn_list:
   - experimental

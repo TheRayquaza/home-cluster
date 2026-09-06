@@ -1,15 +1,15 @@
 ---
 - name: Generate WireGuard server configuration
-  template:
+  ansible.builtin.template:
     src: wg.conf.j2
     dest: "/etc/wireguard/{{ wg_net.key }}.conf"
-    mode: '0600'
+    mode: "0600"
   notify: restart wireguard
 
 - name: Enable and start WireGuard server
-  systemd:
+  ansible.builtin.systemd:
     name: "wg-quick@{{ wg_net.key }}"
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Allow WireGuard UDP port
@@ -39,7 +39,7 @@
     comment: "NAT for WireGuard {{ wg_net.key }} clients"
 
 - name: Install iptables-persistent package
-  apt:
+  ansible.builtin.apt:
     name: iptables-persistent
     state: present
   when: ansible_os_family == "Debian"
@@ -49,7 +49,7 @@
   ansible.builtin.shell: |
     netfilter-persistent save
   changed_when: false
-  ignore_errors: true
+  failed_when: false
   run_once: true
 
 - name: Setup directory for static WireGuard client configs
@@ -58,10 +58,10 @@
   run_once: true
   vars:
     ansible_connection: local
-  file:
+  ansible.builtin.file:
     path: "./static/wg/{{ wg_net.key }}"
     state: directory
-    mode: '0700'
+    mode: "0700"
 
 - name: Render all WireGuard client configurations locally
   delegate_to: localhost
@@ -69,10 +69,10 @@
   run_once: true
   vars:
     ansible_connection: local
-  template:
+  ansible.builtin.template:
     src: wg-client.conf.j2
     dest: "./static/wg/{{ wg_net.key }}/{{ client.name }}.conf"
-    mode: '0600'
+    mode: "0600"
   loop: "{{ wg_net.value.clients | default([]) }}"
   loop_control:
     loop_var: client

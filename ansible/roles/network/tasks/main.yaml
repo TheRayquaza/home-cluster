@@ -1,33 +1,33 @@
 ---
 - name: Configure systemd-resolved global settings
-  template:
+  ansible.builtin.template:
     src: resolved.conf.j2
     dest: /etc/systemd/resolved.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   notify: restart resolved
 
 - name: Configure systemd-networkd for eno1
-  template:
+  ansible.builtin.template:
     src: eno1.network.j2
     dest: /etc/systemd/network/10-eno1.network
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   notify: restart networkd
 
 - name: Ensure /etc/resolv.conf is a symlink to stub-resolv.conf
-  file:
+  ansible.builtin.file:
     src: /run/systemd/resolve/stub-resolv.conf
     dest: /etc/resolv.conf
     state: link
-    force: yes
+    force: true
 
 - name: Ensure systemd-resolved and networkd are enabled
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ item }}"
-    enabled: yes
+    enabled: true
     state: started
   loop:
     - systemd-networkd

@@ -1,9 +1,10 @@
+---
 - name: Disable swap
-  command: sudo swapoff -a
+  ansible.builtin.command: sudo swapoff -a
   changed_when: false
 
 - name: Comment out swap in /etc/fstab
-  command: sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+  ansible.builtin.command: sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
   changed_when: false
 
 - name: Add the br_netfilter and overlay modules
@@ -11,20 +12,20 @@
     name: "{{ item }}"
     state: present
   loop: "{{ ['br_netfilter', 'overlay'] }}"
-  become: yes
+  become: true
   when: ansible_os_family == "Debian"
 
 - name: Apply sysctl settings
   ansible.posix.sysctl:
     name: "{{ item.name }}"
     value: "{{ item.value }}"
-    sysctl_set: yes
+    sysctl_set: true
     state: present
-    reload: yes
+    reload: true
   loop:
-    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
-    - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
-    - { name: 'net.ipv4.ip_forward', value: '1' }
-  become: yes
+    - { name: "net.bridge.bridge-nf-call-iptables", value: "1" }
+    - { name: "net.bridge.bridge-nf-call-ip6tables", value: "1" }
+    - { name: "net.ipv4.ip_forward", value: "1" }
+  become: true
   when: ansible_os_family == "Debian"
   notify: Reload sysctl

@@ -1,28 +1,28 @@
 ---
 - name: Set SSH port
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^#?Port\s+.*'
+    regexp: "^#?Port\\s+.*"
     line: "Port {{ sshd_port | default(22001) }}"
     state: present
   notify: restart sshd
 
 - name: Remove all existing ListenAddress lines
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^ListenAddress\s+.*'
+    regexp: "^ListenAddress\\s+.*"
     state: absent
   notify: restart sshd
 
 - name: Remove commented ListenAddress lines
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^#ListenAddress\s+.*'
+    regexp: "^#ListenAddress\\s+.*"
     state: absent
   notify: restart sshd
 
 - name: Set SSH to listen only on the WireGuard server interfaces
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     line: "ListenAddress {{ item.value.server_ip }}"
     state: present

@@ -1,3 +1,4 @@
+---
 cluster_name: "home"
 cluster_dns_domain: "cluster.local"
 pod_network_cidr: "10.244.0.0/16"

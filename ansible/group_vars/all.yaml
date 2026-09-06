@@ -1,3 +1,4 @@
+---
 # Kubernetes Versioning
 k8s_version: "{{ lookup('env', 'K8S_VERSION') | default('1.35.0', true) }}"
 k8s_version_minor: "v{{ k8s_version | regex_replace('^(\\d+\\.\\d+).*', '\\1') }}"

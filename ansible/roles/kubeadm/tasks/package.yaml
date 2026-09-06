@@ -5,16 +5,16 @@
     state: present
 
 - name: Create keyring directory
-  file:
+  ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Add Kubernetes GPG key
   ansible.builtin.get_url:
     url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_version_minor }}/deb/Release.key"
     dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
-    mode: '0644'
+    mode: "0644"
 
 - name: Add Kubernetes repository
   ansible.builtin.apt_repository:
@@ -24,7 +24,7 @@
 
 - name: Update apt cache
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
 
 # - name: Unhold Kubernetes packages to allow update
 #   ansible.builtin.dpkg_selections:
@@ -39,7 +39,7 @@
       - "kubeadm={{ k8s_package_version }}"
       - "kubectl={{ k8s_package_version }}"
     state: present
-    update_cache: yes
+    update_cache: true
 
 - name: Hold K8s packages
   ansible.builtin.dpkg_selections:

@@ -1,44 +1,44 @@
 ---
 - name: Update apt cache
-  apt:
-    update_cache: yes
+  ansible.builtin.apt:
+    update_cache: true
     cache_valid_time: 3600
   when: ansible_os_family == "Debian"
 
 - name: Install WireGuard
-  package:
+  ansible.builtin.package:
     name: wireguard
     state: present
 
 - name: Enable IP forwarding
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv4.ip_forward
-    value: '1'
+    value: "1"
     state: present
-    reload: yes
+    reload: true
 
 - name: Enable IPv6 forwarding
-  sysctl:
+  ansible.posix.sysctl:
     name: net.ipv6.conf.all.forwarding
-    value: '1'
+    value: "1"
     state: present
-    reload: yes
+    reload: true
 
 - name: Create WireGuard config directory
-  file:
+  ansible.builtin.file:
     path: /etc/wireguard
     state: directory
-    mode: '0700'
+    mode: "0700"
 
 - name: Wireguard server setup
-  include_tasks: server.yaml
+  ansible.builtin.include_tasks: server.yaml
   loop: "{{ wg_networks | dict2items }}"
   loop_control:
     loop_var: wg_net
   when: wg_net.value.mode in ['server', 'both']
 
 - name: Wireguard client setup
-  include_tasks: client.yaml
+  ansible.builtin.include_tasks: client.yaml
   loop: "{{ wg_networks | dict2items }}"
   loop_control:
     loop_var: wg_net
