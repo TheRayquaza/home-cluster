@@ -97,7 +97,7 @@ spec:
                   - name: dind-externals
                     mountPath: /home/runner/tmpDir
               - name: dind
-                image: docker:28.3.0-dind
+                image: docker:28.5.2-dind
                 args:
                   - dockerd
                   - --host=unix:///var/run/docker.sock
