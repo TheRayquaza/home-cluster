@@ -20,17 +20,13 @@ spec:
   sources:
   - repoURL: https://falcosecurity.github.io/charts
     chart: falco
-    targetRevision: 4.22.0
+    targetRevision: 9.1.0
     helm:
       releaseName: falco
       values: |
         driver:
           kind: modern_ebpf
         falco:
-          grpc:
-            enabled: false
-          grpc_output:
-            enabled: false
           json_output: true
           log_stderr: true
           priority: warning

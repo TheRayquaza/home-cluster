@@ -1,0 +1,63 @@
+name: CI - Apps
+
+on:
+  pull_request:
+    paths:
+      - apps/**
+      - .hadolint.yaml
+      - .github/workflows/apps/ci.yaml
+      - .github/workflows/templates/app-ci.yaml
+      - .github/workflows/templates/build.yaml
+      - .github/workflows/templates/lint-docker.yaml
+      - .github/workflows/templates/layer-analysis.yaml
+      - .github/workflows/templates/security-trivy.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - apps/**
+      - .hadolint.yaml
+      - .github/workflows/apps/ci.yaml
+      - .github/workflows/templates/app-ci.yaml
+      - .github/workflows/templates/build.yaml
+      - .github/workflows/templates/lint-docker.yaml
+      - .github/workflows/templates/layer-analysis.yaml
+      - .github/workflows/templates/security-trivy.yaml
+
+jobs:
+  ci:
+    name: ${{ matrix.app }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: pix
+            context: apps/pix
+            image-name: ghcr.io/therayquaza/home-cluster/pix
+            dockerfile: apps/pix/Dockerfile
+            scan-target: apps/pix
+          - app: games-frontend
+            context: apps/games/frontend
+            image-name: ghcr.io/therayquaza/home-cluster/games-frontend
+            dockerfile: apps/games/frontend/Dockerfile
+            scan-target: apps/games/frontend
+          - app: games-backend
+            context: apps/games/backend
+            image-name: ghcr.io/therayquaza/home-cluster/games-backend
+            dockerfile: apps/games/backend/Dockerfile
+            scan-target: apps/games/backend
+          - app: kommande
+            context: apps/kommande
+            image-name: ghcr.io/therayquaza/home-cluster/kommande
+            dockerfile: apps/kommande/Dockerfile
+            scan-target: apps/kommande
+    uses: ./.github/workflows/templates/app-ci.yaml
+    with:
+      context: ${{ matrix.context }}
+      image-name: ${{ matrix.image-name }}
+      dockerfile: ${{ matrix.dockerfile }}
+      scan-target: ${{ matrix.scan-target }}
+    permissions:
+      contents: read
+      packages: read
+      security-events: write

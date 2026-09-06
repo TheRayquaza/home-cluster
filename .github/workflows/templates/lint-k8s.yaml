@@ -1,11 +1,7 @@
-name: Lint - Kubernetes
+name: Template - Kubernetes Lint
 
 on:
-  pull_request:
-    paths:
-      - k8s/**
-      - .kube-linter.yaml
-      - .github/workflows/infra/lint-k8s.yaml
+  workflow_call:
 
 jobs:
   kubeconform:
@@ -29,6 +25,25 @@ jobs:
                 -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
                 -ignore-missing-schemas \
                 -summary
+
+  kustomize-render:
+    runs-on: [home-cluster]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kustomize
+        run: |
+          curl -sSL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz \
+            | tar xz -C /usr/local/bin/
+
+      - name: Render all kustomize overlays
+        run: |
+          for dir in $(find k8s -name kustomization.yaml -printf '%h\n' | sort -u); do
+            echo "rendering $dir"
+            kustomize build "$dir" >/dev/null
+          done
 
   kube-linter:
     runs-on: [home-cluster]
