@@ -5,14 +5,14 @@ on:
     paths:
       - terraform/**
       - .tflint.hcl
-      - .github/workflows/infra/lint-terraform.yaml
+      - .github/workflows/lint-terraform.yaml
   push:
     branches:
       - main
     paths:
       - terraform/**
       - .tflint.hcl
-      - .github/workflows/infra/lint-terraform.yaml
+      - .github/workflows/lint-terraform.yaml
 
 jobs:
   fmt:

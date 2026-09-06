@@ -3,21 +3,21 @@ package config
 import "os"
 
 type Config struct {
-	MongoURI        string
-	DBName          string
-	JWTSecret       string
-	Port            string
-	SMTPHost        string
-	SMTPPort        string
-	SMTPUser        string
-	SMTPPassword    string
-	SMTPFrom        string
-	AdminEmail      string
-	BaseURL         string
-	OIDCIssuer      string
-	OIDCClientID    string
+	MongoURI         string
+	DBName           string
+	JWTSecret        string
+	Port             string
+	SMTPHost         string
+	SMTPPort         string
+	SMTPUser         string
+	SMTPPassword     string
+	SMTPFrom         string
+	AdminEmail       string
+	BaseURL          string
+	OIDCIssuer       string
+	OIDCClientID     string
 	OIDCClientSecret string
-	OIDCRedirectURL string
+	OIDCRedirectURL  string
 }
 
 func Load() *Config {

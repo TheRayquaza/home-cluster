@@ -5,16 +5,16 @@ on:
     paths:
       - apps/kommande/**
       - .golangci.yml
-      - .github/workflows/apps/kommande/lint.yaml
-      - .github/workflows/templates/lint-go.yaml
+      - .github/workflows/lint-kommande.yaml
+      - .github/workflows/reusable-lint-go.yaml
   push:
     branches:
       - main
     paths:
       - apps/kommande/**
       - .golangci.yml
-      - .github/workflows/apps/kommande/lint.yaml
-      - .github/workflows/templates/lint-go.yaml
+      - .github/workflows/lint-kommande.yaml
+      - .github/workflows/reusable-lint-go.yaml
 
 jobs:
   go:

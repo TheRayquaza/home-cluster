@@ -13,13 +13,15 @@ variable "vault_root_token" {
 
 # Cloudflare variables
 variable "cloudflare_api_token" {
-  type      = string
-  sensitive = true
+  description = "Cloudflare API token"
+  type        = string
+  sensitive   = true
 }
 
 variable "cloudflare_email" {
-  type      = string
-  sensitive = true
+  description = "Cloudflare account email"
+  type        = string
+  sensitive   = true
 }
 
 # Keycloak variables — see terraform/keycloak/ for client secret values

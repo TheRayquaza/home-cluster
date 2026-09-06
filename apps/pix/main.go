@@ -35,7 +35,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.Execute(w, map[string]interface{}{"Notes": notes})
+	_ = tmpl.Execute(w, map[string]interface{}{"Notes": notes})
 }
 
 // New Delete Endpoint
@@ -60,5 +60,5 @@ func main() {
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/delete", deleteHandler)
 	fmt.Println("⚡ PixelVault OS: http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	_ = http.ListenAndServe(":8080", nil)
 }

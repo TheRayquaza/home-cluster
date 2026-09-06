@@ -4,9 +4,10 @@ import (
 	"context"
 	"net/http"
 
+	"kommande/internal/models"
+
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
-	"kommande/internal/models"
 )
 
 type contextKey string

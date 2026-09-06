@@ -34,7 +34,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("db connect: %v", err)
 	}
-	defer database.Close()
+	defer func() { _ = database.Close() }()
 
 	if err := db.Migrate(database); err != nil {
 		log.Fatalf("db migrate: %v", err)
@@ -366,7 +366,7 @@ func handleLeaderboard(database *sql.DB) http.HandlerFunc {
 			jsonErr(w, http.StatusInternalServerError, "internal error")
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		type entry struct {
 			Username string `json:"username"`
@@ -490,15 +490,15 @@ func handleAdminSessions(database *sql.DB) http.HandlerFunc {
 			jsonErr(w, http.StatusInternalServerError, "internal error")
 			return
 		}
-		defer rows.Close()
+		defer func() { _ = rows.Close() }()
 
 		type sessionRow struct {
-			ID        string     `json:"id"`
-			GameID    string     `json:"game_id"`
-			Player1   string     `json:"player1"`
-			Player2   string     `json:"player2"`
-			WinnerIdx *int       `json:"winner_idx"`
-			PlayedAt  time.Time  `json:"played_at"`
+			ID        string    `json:"id"`
+			GameID    string    `json:"game_id"`
+			Player1   string    `json:"player1"`
+			Player2   string    `json:"player2"`
+			WinnerIdx *int      `json:"winner_idx"`
+			PlayedAt  time.Time `json:"played_at"`
 		}
 		result := []sessionRow{}
 		for rows.Next() {
@@ -551,7 +551,7 @@ func handleWS(h *hub.Hub, jwtSecret, _ string) http.HandlerFunc {
 		client := hub.NewClient(claims.UserID, claims.Username, conn)
 		defer func() {
 			h.RemoveClient(client)
-			conn.Close()
+			_ = conn.Close()
 		}()
 
 		log.Printf("ws: %s connected", claims.Username)
@@ -608,4 +608,3 @@ func generateState() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
-

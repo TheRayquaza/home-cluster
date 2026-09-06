@@ -33,11 +33,11 @@ func main() {
 	database := client.Database(cfg.DBName)
 	ctx := context.Background()
 
-	database.Collection("users").Indexes().CreateOne(ctx, mongo.IndexModel{
+	_, _ = database.Collection("users").Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
-	database.Collection("orders").Indexes().CreateOne(ctx, mongo.IndexModel{
+	_, _ = database.Collection("orders").Indexes().CreateOne(ctx, mongo.IndexModel{
 		Keys: bson.D{{Key: "email", Value: 1}, {Key: "date", Value: -1}},
 	})
 
@@ -106,6 +106,6 @@ func main() {
 	log.Println("Shutting down...")
 	shutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	srv.Shutdown(shutCtx)
-	client.Disconnect(shutCtx)
+	_ = srv.Shutdown(shutCtx)
+	_ = client.Disconnect(shutCtx)
 }

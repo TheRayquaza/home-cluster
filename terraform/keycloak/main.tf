@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.3.0"
+
   required_providers {
     keycloak = {
       source  = "mrparkers/keycloak"
@@ -15,7 +17,7 @@ provider "keycloak" {
 }
 
 data "keycloak_realm" "home" {
-  realm                = "home"
+  realm = "home"
 }
 
 # ==========================================

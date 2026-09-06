@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.3.0"
+
   required_providers {
     vault = {
       source  = "hashicorp/vault"
@@ -19,7 +21,7 @@ provider "vault" {
 resource "vault_auth_backend" "kubernetes" {
   type = "kubernetes"
   path = "kubernetes"
-  
+
   description = "Kubernetes auth backend for External Secrets Operator"
 }
 

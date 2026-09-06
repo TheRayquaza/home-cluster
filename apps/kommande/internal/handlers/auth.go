@@ -133,8 +133,8 @@ func (h *Handler) upsertOIDCUser(ctx context.Context, email, username, role stri
 	filter := bson.M{"email": email}
 	update := bson.M{
 		"$set": bson.M{
-			"username":   username,
-			"role":       role,
+			"username": username,
+			"role":     role,
 		},
 		"$setOnInsert": bson.M{
 			"_id":        bson.NewObjectID(),

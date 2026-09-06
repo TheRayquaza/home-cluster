@@ -33,9 +33,9 @@ func (h *Handler) ServeImage(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	defer downloadStream.Close()
+	defer func() { _ = downloadStream.Close() }()
 
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=86400")
-	io.Copy(w, downloadStream)
+	_, _ = io.Copy(w, downloadStream)
 }

@@ -13,8 +13,10 @@ jobs:
 
       - name: Install kubeconform
         run: |
+          mkdir -p "$HOME/.local/bin"
           curl -sSfL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
-            | tar xz -C /usr/local/bin/
+            | tar xz -C "$HOME/.local/bin/"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Validate manifests
         run: |
@@ -35,8 +37,10 @@ jobs:
 
       - name: Install kustomize
         run: |
+          mkdir -p "$HOME/.local/bin"
           curl -sSL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/kustomize_v5.4.3_linux_amd64.tar.gz \
-            | tar xz -C /usr/local/bin/
+            | tar xz -C "$HOME/.local/bin/"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Render all kustomize overlays
         run: |

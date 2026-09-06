@@ -24,7 +24,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var articles []models.Article
 	if err := cursor.All(ctx, &articles); err != nil {

@@ -40,8 +40,8 @@ func (h *Handler) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	cursor, _ := h.db.Collection("orders").Find(ctx, bson.M{"date": today}, opts)
 	var recent []models.Order
 	if cursor != nil {
-		cursor.All(ctx, &recent)
-		cursor.Close(ctx)
+		_ = cursor.All(ctx, &recent)
+		_ = cursor.Close(ctx)
 	}
 
 	h.render(w, r, "templates/admin/dashboard.html", "Tableau de bord", dashboardData{
@@ -64,7 +64,7 @@ func (h *Handler) AdminArticles(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var articles []models.Article
 	if err := cursor.All(ctx, &articles); err != nil {
@@ -86,9 +86,9 @@ func (h *Handler) loadCategories(ctx context.Context) []models.Category {
 	if err != nil {
 		return nil
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 	var cats []models.Category
-	cursor.All(ctx, &cats)
+	_ = cursor.All(ctx, &cats)
 	return cats
 }
 
@@ -243,7 +243,7 @@ func (h *Handler) AdminDeleteArticle(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	h.db.Collection("articles").DeleteOne(ctx, bson.M{"_id": id})
+	_, _ = h.db.Collection("articles").DeleteOne(ctx, bson.M{"_id": id})
 
 	setFlash(w, "Article supprimé.", "success")
 	http.Redirect(w, r, "/admin/articles", http.StatusSeeOther)
@@ -271,7 +271,7 @@ func (h *Handler) AdminOrders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var orders []models.Order
 	if err := cursor.All(ctx, &orders); err != nil {
@@ -279,7 +279,7 @@ func (h *Handler) AdminOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, "templates/admin/orders.html", "Commandes du jour", adminOrdersData{
+	h.render(w, r, "templates/admin/orders.html", "Commands du jour", adminOrdersData{
 		Orders: orders,
 		Date:   date,
 	})
@@ -375,7 +375,7 @@ func (h *Handler) uploadImage(ctx context.Context, r *http.Request) (bson.Object
 	if err != nil {
 		return bson.NilObjectID, err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	bucket := h.db.GridFSBucket()
 
@@ -392,7 +392,7 @@ func (h *Handler) uploadImage(ctx context.Context, r *http.Request) (bson.Object
 	if err != nil {
 		return bson.NilObjectID, err
 	}
-	defer uploadStream.Close()
+	defer func() { _ = uploadStream.Close() }()
 
 	if _, err := io.Copy(uploadStream, file); err != nil {
 		return bson.NilObjectID, err

@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - ansible/**
-      - .github/workflows/infra/lint-ansible.yaml
+      - .github/workflows/lint-ansible.yaml
   push:
     branches:
       - main
     paths:
       - ansible/**
-      - .github/workflows/infra/lint-ansible.yaml
+      - .github/workflows/lint-ansible.yaml
 
 jobs:
   ansible-lint:
@@ -20,6 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ansible/ansible-lint@v24
+      - uses: actions/setup-python@v5
         with:
-          working_directory: ansible/
+          python-version: "3.11"
+
+      - name: Install ansible-lint
+        run: pip install ansible-lint
+
+      - name: Run ansible-lint
+        run: ansible-lint .
+        working-directory: ansible/

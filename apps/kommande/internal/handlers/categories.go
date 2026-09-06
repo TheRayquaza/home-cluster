@@ -21,7 +21,7 @@ func (h *Handler) AdminCategories(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var cats []models.Category
 	if err := cursor.All(ctx, &cats); err != nil {
@@ -137,9 +137,9 @@ func (h *Handler) AdminDeleteCategory(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
 
-	h.db.Collection("categories").DeleteOne(ctx, bson.M{"_id": id})
+	_, _ = h.db.Collection("categories").DeleteOne(ctx, bson.M{"_id": id})
 	// Remove category reference from all articles
-	h.db.Collection("articles").UpdateMany(ctx,
+	_, _ = h.db.Collection("articles").UpdateMany(ctx,
 		bson.M{"category_ids": id},
 		bson.M{"$pull": bson.M{"category_ids": id}},
 	)
