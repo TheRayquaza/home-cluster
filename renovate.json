@@ -13,30 +13,42 @@
   "automerge": false,
 
   "argocd": {
-    "fileMatch": ["(^|/)k8s/apps/.+\\.yaml$"]
+    "managerFilePatterns": [
+      "/(^|/)k8s/apps/.+\\.yaml$/"
+    ]
   },
 
   "dockerfile": {
-    "fileMatch": ["(^|/)apps/.+/Dockerfile$"]
+    "managerFilePatterns": [
+      "/(^|/)apps/.+/Dockerfile$/"
+    ]
   },
 
   "kubernetes": {
-    "fileMatch": ["(^|/)k8s/.+\\.yaml$"]
+    "managerFilePatterns": [
+      "/(^|/)k8s/.+\\.yaml$/"
+    ]
   },
 
   "docker-compose": {
-    "fileMatch": ["(^|/)apps/.+/docker-compose\\.ya?ml$"]
+    "managerFilePatterns": [
+      "/(^|/)apps/.+/docker-compose\\.ya?ml$/"
+    ]
   },
 
   "terraform": {
-    "fileMatch": ["(^|/)terraform/.+\\.tf$"]
+    "managerFilePatterns": [
+      "/(^|/)terraform/.+\\.tf$/"
+    ]
   },
 
   "customManagers": [
     {
       "customType": "regex",
       "description": "hashicorp/vault image pinned inside ArgoCD helm values string",
-      "fileMatch": ["(^|/)k8s/apps/vault\\.yaml$"],
+      "managerFilePatterns": [
+        "/(^|/)k8s/apps/vault\\.yaml$/"
+      ],
       "matchStrings": [
         "repository: (?<depName>[^\\n]+)\\n\\s+tag: \"(?<currentValue>[^\"]+)\""
       ],
@@ -45,7 +57,9 @@
     {
       "customType": "regex",
       "description": "rancher/local-path-provisioner image pinned inside ArgoCD helm values string",
-      "fileMatch": ["(^|/)k8s/apps/local-path-provisioner\\.yaml$"],
+      "managerFilePatterns": [
+        "/(^|/)k8s/apps/local-path-provisioner\\.yaml$/"
+      ],
       "matchStrings": [
         "repository: (?<depName>rancher/local-path-provisioner)\\n\\s+tag: (?<currentValue>[^\\n]+)",
         "repository: (?<depName>busybox)\\n\\s+tag: \"(?<currentValue>[^\"]+)\""
