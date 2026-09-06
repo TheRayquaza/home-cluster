@@ -22,7 +22,7 @@ spec:
                 medium: Memory
           containers:
             - name: checker
-              image: alpine:3.19
+              image: alpine:3.24
               command: ["/bin/sh", "-c"]
               args:
                 - |
