@@ -1,8 +1,0 @@
-name: Probe Subdir
-on:
-  workflow_dispatch:
-jobs:
-  probe:
-    runs-on: [home-cluster]
-    steps:
-      - run: echo "subdir probe"

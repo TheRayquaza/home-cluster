@@ -18,7 +18,7 @@ on:
 
 jobs:
   go:
-    uses: ./.github/workflows/templates/lint-go.yaml
+    uses: ./.github/workflows/reusable-lint-go.yaml
     with:
       working-directory: apps/kommande
     permissions:

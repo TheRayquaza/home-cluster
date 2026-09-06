@@ -1,18 +1,18 @@
-name: Publish - pix
+name: Publish - kommande
 
 on:
   push:
     tags:
-      - "pix/v*"
+      - "kommande/v*"
 
 jobs:
   build:
-    uses: ./.github/workflows/templates/build.yaml
+    uses: ./.github/workflows/reusable-build.yaml
     with:
-      context: apps/pix
-      image-name: ghcr.io/therayquaza/home-cluster/pix
+      context: apps/kommande
+      image-name: ghcr.io/therayquaza/home-cluster/kommande
       push: true
-      tag-prefix: "pix/"
+      tag-prefix: "kommande/"
     permissions:
       contents: read
       packages: write
@@ -28,6 +28,6 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ghcr.io/therayquaza/home-cluster/pix
+          subject-name: ghcr.io/therayquaza/home-cluster/kommande
           subject-digest: ${{ needs.build.outputs.digest }}
           push-to-registry: true

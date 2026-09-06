@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/templates/build.yaml
+    uses: ./.github/workflows/reusable-build.yaml
     with:
       context: apps/games/backend
       image-name: ghcr.io/therayquaza/home-cluster/games-backend

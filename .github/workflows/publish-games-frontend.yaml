@@ -1,18 +1,18 @@
-name: Publish - kommande
+name: Publish - games-frontend
 
 on:
   push:
     tags:
-      - "kommande/v*"
+      - "games-frontend/v*"
 
 jobs:
   build:
-    uses: ./.github/workflows/templates/build.yaml
+    uses: ./.github/workflows/reusable-build.yaml
     with:
-      context: apps/kommande
-      image-name: ghcr.io/therayquaza/home-cluster/kommande
+      context: apps/games/frontend
+      image-name: ghcr.io/therayquaza/home-cluster/games-frontend
       push: true
-      tag-prefix: "kommande/"
+      tag-prefix: "games-frontend/"
     permissions:
       contents: read
       packages: write
@@ -28,6 +28,6 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ghcr.io/therayquaza/home-cluster/kommande
+          subject-name: ghcr.io/therayquaza/home-cluster/games-frontend
           subject-digest: ${{ needs.build.outputs.digest }}
           push-to-registry: true

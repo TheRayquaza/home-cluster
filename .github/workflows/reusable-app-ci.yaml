@@ -27,7 +27,7 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/templates/build.yaml
+    uses: ./.github/workflows/reusable-build.yaml
     with:
       context: ${{ inputs.context }}
       image-name: ${{ inputs.image-name }}
@@ -39,14 +39,14 @@ jobs:
       packages: read
 
   hadolint:
-    uses: ./.github/workflows/templates/lint-docker.yaml
+    uses: ./.github/workflows/reusable-lint-docker.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
     permissions:
       contents: read
 
   trivy-fs:
-    uses: ./.github/workflows/templates/security-trivy.yaml
+    uses: ./.github/workflows/reusable-security-trivy.yaml
     with:
       scan-type: fs
       target: ${{ inputs.scan-target }}
@@ -56,7 +56,7 @@ jobs:
 
   layer-analysis:
     needs: build
-    uses: ./.github/workflows/templates/layer-analysis.yaml
+    uses: ./.github/workflows/reusable-layer-analysis.yaml
     with:
       image-ref: ${{ needs.build.outputs.image-ref }}
     permissions:
@@ -64,7 +64,7 @@ jobs:
 
   trivy-image:
     needs: build
-    uses: ./.github/workflows/templates/security-trivy.yaml
+    uses: ./.github/workflows/reusable-security-trivy.yaml
     with:
       scan-type: image
       target: ${{ needs.build.outputs.image-ref }}

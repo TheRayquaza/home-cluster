@@ -18,6 +18,6 @@ on:
 
 jobs:
   lint:
-    uses: ./.github/workflows/templates/lint-k8s.yaml
+    uses: ./.github/workflows/reusable-lint-k8s.yaml
     permissions:
       contents: read

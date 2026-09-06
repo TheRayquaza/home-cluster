@@ -51,7 +51,7 @@ jobs:
             image-name: ghcr.io/therayquaza/home-cluster/kommande
             dockerfile: apps/kommande/Dockerfile
             scan-target: apps/kommande
-    uses: ./.github/workflows/templates/app-ci.yaml
+    uses: ./.github/workflows/reusable-app-ci.yaml
     with:
       context: ${{ matrix.context }}
       image-name: ${{ matrix.image-name }}
