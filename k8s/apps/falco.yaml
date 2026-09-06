@@ -27,10 +27,6 @@ spec:
         driver:
           kind: modern_ebpf
         falco:
-          grpc:
-            enabled: false
-          grpc_output:
-            enabled: false
           json_output: true
           log_stderr: true
           priority: warning
