@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.3.0"
+
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -17,7 +19,7 @@ resource "cloudflare_record" "multi_record" {
 
   zone_id = var.zone_id
   name    = each.value.name
-  content   = each.value.content
+  content = each.value.content
   type    = each.value.type
   ttl     = each.value.ttl
   proxied = each.value.proxied

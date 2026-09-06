@@ -1,7 +1,7 @@
+---
 - name: "Restart containerd service"
-  systemd:
+  ansible.builtin.systemd:
     name: containerd
     state: restarted
-  become: yes
+  become: true
   when: ansible_os_family == "Debian"
-

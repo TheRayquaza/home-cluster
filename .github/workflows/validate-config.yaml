@@ -7,7 +7,7 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.json"
-      - .github/workflows/infra/validate-config.yaml
+      - .github/workflows/validate-config.yaml
   push:
     branches:
       - main
@@ -16,7 +16,7 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.json"
-      - .github/workflows/infra/validate-config.yaml
+      - .github/workflows/validate-config.yaml
 
 jobs:
   renovate-config:

@@ -1,19 +1,27 @@
-- include_tasks: kernel.yaml
-- include_tasks: package.yaml
+---
+- name: Configure kernel and modules
+  ansible.builtin.include_tasks: kernel.yaml
+- name: Install Kubernetes packages
+  ansible.builtin.include_tasks: package.yaml
 
 - name: Ensure kubelet is enabled
-  systemd:
+  ansible.builtin.systemd:
     name: kubelet
-    enabled: yes
+    enabled: true
     state: started
 
 # ---------------------------------------------------------
 # MASTER INITIALIZATION (Run only on the first master)
 # ---------------------------------------------------------
 - name: Bootstrap First Master
+  when: inventory_hostname == groups['master'][0]
+
+  # ---------------------------------------------------------
+  # POST-INIT: Isolate control-plane to loopback (idempotent)
+  # ---------------------------------------------------------
   block:
     - name: Pre-init cleanup of lingering K8s files
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: absent
       loop:
@@ -24,14 +32,15 @@
         - /var/lib/etcd/member
 
     - name: Stop kubelet before init
-      systemd:
+      ansible.builtin.systemd:
         name: kubelet
         state: stopped
 
     - name: Template kubeadm config (Cluster + Init + Kubelet)
-      template:
+      ansible.builtin.template:
         src: "{{ item }}.j2"
         dest: "/tmp/{{ item }}"
+        mode: "0644"
       loop:
         - cluster-config.yaml
         - init-config.yaml
@@ -39,10 +48,11 @@
       notify: Restart kubelet
 
     - name: Merge configs into one file
-      shell: "cat /tmp/init-config.yaml /tmp/cluster-config.yaml /tmp/kubelet-config.yaml > /etc/kubernetes/kubeadm-config.yaml"
+      ansible.builtin.shell: "cat /tmp/init-config.yaml /tmp/cluster-config.yaml /tmp/kubelet-config.yaml > /etc/kubernetes/kubeadm-config.yaml"
+      changed_when: false
 
     - name: Initialize Cluster
-      command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
+      ansible.builtin.command: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
       args:
         creates: /etc/kubernetes/admin.conf
       register: kubeadm_output
@@ -51,46 +61,42 @@
       poll: 10
 
     - name: Show kubeadm output on failure
-      debug:
+      ansible.builtin.debug:
         var: kubeadm_output.stdout_lines
       when: kubeadm_output.failed
 
     - name: Setup kubeconfig for user
-      include_tasks: user_configs.yaml
-  when: inventory_hostname == groups['master'][0]
-
-# ---------------------------------------------------------
-# POST-INIT: Isolate control-plane to loopback (idempotent)
-# ---------------------------------------------------------
+      ansible.builtin.include_tasks: user_configs.yaml
 - name: Enforce loopback isolation on control-plane
-  include_tasks: loopback.yaml
+  ansible.builtin.include_tasks: loopback.yaml
   when: inventory_hostname == groups['master'][0]
 
 # ---------------------------------------------------------
 # JOIN LOGIC (Run on workers or secondary masters)
 # ---------------------------------------------------------
 - name: Join Cluster
+  when: inventory_hostname != groups['master'][0]
+
   block:
     - name: Template Join Config
-      template:
+      ansible.builtin.template:
         src: join-config-worker.yaml.j2
         dest: /etc/kubernetes/join-config.yaml
+        mode: "0644"
 
     - name: Run Join Command
-      command: kubeadm join --config /etc/kubernetes/join-config.yaml
+      ansible.builtin.command: kubeadm join --config /etc/kubernetes/join-config.yaml
       args:
         creates: /etc/kubernetes/kubelet.conf
-    
+
     - name: Add node ip in kubelet config
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: /etc/default/kubelet
-        regexp: '^KUBELET_EXTRA_ARGS='
+        regexp: "^KUBELET_EXTRA_ARGS="
         line: 'KUBELET_EXTRA_ARGS="--node-ip={{ wireguard_node_ip }}"'
       notify: Restart kubelet
 
-  when: inventory_hostname != groups['master'][0]
-
 - name: Change hostname
-  hostname:
+  ansible.builtin.hostname:
     name: "{{ inventory_hostname }}"
   when: "'master' in group_names or 'workers' in group_names"

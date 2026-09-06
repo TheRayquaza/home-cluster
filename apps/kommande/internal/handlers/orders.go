@@ -43,7 +43,7 @@ func (h *Handler) OrderPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var articles []models.Article
 	if err := cursor.All(ctx, &articles); err != nil {
@@ -95,7 +95,7 @@ func (h *Handler) SubmitOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var articles []models.Article
 	if err := cursor.All(ctx, &articles); err != nil {
@@ -193,7 +193,7 @@ func (h *Handler) MyOrders(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var orders []models.Order
 	if err := cursor.All(ctx, &orders); err != nil {
@@ -201,7 +201,7 @@ func (h *Handler) MyOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.render(w, r, "templates/my-orders.html", "Mes commandes", orders)
+	h.render(w, r, "templates/my-orders.html", "Mes commands", orders)
 }
 
 func (h *Handler) notifyAdminNewOrder(username, date string, items []models.OrderItem, isNew bool) {

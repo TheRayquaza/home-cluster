@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "/home/{{ ansible_user }}/.kube"
     state: directory
-    mode: '0755'
+    mode: "0755"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
 
@@ -11,25 +11,25 @@
   ansible.builtin.copy:
     src: /etc/kubernetes/admin.conf
     dest: "/home/{{ ansible_user }}/.kube/config"
-    remote_src: yes
+    remote_src: true
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    mode: '0600'
+    mode: "0600"
 
 - name: Set KUBECONFIG environment variable in .bashrc
   ansible.builtin.lineinfile:
     path: "/home/{{ ansible_user }}/.bashrc"
-    line: 'export KUBECONFIG=$HOME/.kube/config'
+    line: "export KUBECONFIG=$HOME/.kube/config"
     state: present
 
 - name: Add static kubeconfig directory
   ansible.builtin.file:
     path: "./static/kubeconfigs"
     state: directory
-    mode: '0700'
+    mode: "0700"
 
 - name: Fetch admin.conf to local machine for ArgoCD/Local access
   ansible.builtin.fetch:
     src: /etc/kubernetes/admin.conf
     dest: "./static/kubeconfigs/{{ cluster_name | default('home-cluster') }}-config"
-    flat: yes
+    flat: true

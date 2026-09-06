@@ -3,7 +3,7 @@
   hosts:
     - master
     - workers
-  become: yes
+  become: true
   roles:
     - containerd
   tags:
@@ -14,7 +14,7 @@
 - name: Setup Network
   hosts:
     - master
-  become: yes
+  become: true
   roles:
     - network
   tags:
@@ -26,7 +26,7 @@
   hosts:
     - master
     - workers
-  become: yes
+  become: true
   roles:
     - wg
   tags:
@@ -37,7 +37,7 @@
   hosts:
     - master
     - workers
-  become: yes
+  become: true
   roles:
     - kubeadm
   tags:

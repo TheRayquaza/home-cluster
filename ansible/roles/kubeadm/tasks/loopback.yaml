@@ -7,75 +7,81 @@
 
 # --- etcd static-pod manifest ---
 - name: etcd – listen on loopback only (client)
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/etcd.yaml
-    regexp: '^\s+-\s+--listen-client-urls='
-    line: '    - --listen-client-urls=https://127.0.0.1:2379'
+    regexp: "^\\s+-\\s+--listen-client-urls="
+    line: "    - --listen-client-urls=https://127.0.0.1:2379"
 
 - name: etcd – advertise on loopback only (client)
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/etcd.yaml
-    regexp: '^\s+-\s+--advertise-client-urls='
-    line: '    - --advertise-client-urls=https://127.0.0.1:2379'
+    regexp: "^\\s+-\\s+--advertise-client-urls="
+    line: "    - --advertise-client-urls=https://127.0.0.1:2379"
 
 - name: etcd – listen on loopback only (peer)
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/etcd.yaml
-    regexp: '^\s+-\s+--listen-peer-urls='
-    line: '    - --listen-peer-urls=https://127.0.0.1:2380'
+    regexp: "^\\s+-\\s+--listen-peer-urls="
+    line: "    - --listen-peer-urls=https://127.0.0.1:2380"
 
 - name: etcd – initial-advertise-peer-urls on loopback
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/etcd.yaml
-    regexp: '^\s+-\s+--initial-advertise-peer-urls='
-    line: '    - --initial-advertise-peer-urls=https://127.0.0.1:2380'
+    regexp: "^\\s+-\\s+--initial-advertise-peer-urls="
+    line: "    - --initial-advertise-peer-urls=https://127.0.0.1:2380"
 
 - name: etcd – initial-cluster on loopback
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/etcd.yaml
-    regexp: '^\s+-\s+--initial-cluster='
-    line: '    - --initial-cluster=master=https://127.0.0.1:2380'
+    regexp: "^\\s+-\\s+--initial-cluster="
+    line: "    - --initial-cluster=master=https://127.0.0.1:2380"
 
 # --- kube-apiserver static-pod manifest ---
 - name: apiserver – point etcd-servers to loopback
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/kube-apiserver.yaml
-    regexp: '^\s+-\s+--etcd-servers='
-    line: '    - --etcd-servers=https://127.0.0.1:2379'
+    regexp: "^\\s+-\\s+--etcd-servers="
+    line: "    - --etcd-servers=https://127.0.0.1:2379"
 
 # --- kube-scheduler static-pod manifest ---
 - name: scheduler – bind on loopback
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/kube-scheduler.yaml
-    regexp: '^\s+-\s+--bind-address='
-    line: '    - --bind-address=127.0.0.1'
+    regexp: "^\\s+-\\s+--bind-address="
+    line: "    - --bind-address=127.0.0.1"
 
 # --- kube-controller-manager static-pod manifest ---
 - name: controller-manager – bind on loopback
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/kubernetes/manifests/kube-controller-manager.yaml
-    regexp: '^\s+-\s+--bind-address='
-    line: '    - --bind-address=127.0.0.1'
+    regexp: "^\\s+-\\s+--bind-address="
+    line: "    - --bind-address=127.0.0.1"
 
 # --- apiserver certificate (ensure 127.0.0.1 SAN) ---
 - name: Check if apiserver cert includes 127.0.0.1 SAN
-  shell: |
-    openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text 2>/dev/null \
-      | grep -q 'IP Address:127.0.0.1'
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -text 2>/dev/null \
+        | grep -q 'IP Address:127.0.0.1'
   register: cert_check
   changed_when: false
   failed_when: false
 
 - name: Regenerate apiserver cert with 127.0.0.1 SAN
+  when: cert_check.rc != 0
+
+  # --- Control-plane kubeconfigs → loopback ---
   block:
     - name: Generate CSR for apiserver
-      shell: |
+      ansible.builtin.shell: |
         openssl req -new -key /etc/kubernetes/pki/apiserver.key \
           -out /tmp/apiserver.csr \
           -subj '/CN=kube-apiserver'
+      changed_when: false
 
     - name: Sign apiserver cert with CA (includes 127.0.0.1)
-      shell: |
+      ansible.builtin.shell: |
         openssl x509 -req -in /tmp/apiserver.csr \
           -CA /etc/kubernetes/pki/ca.crt \
           -CAkey /etc/kubernetes/pki/ca.key \
@@ -83,18 +89,16 @@
           -out /etc/kubernetes/pki/apiserver.crt \
           -days 3650 \
           -extfile <(printf 'subjectAltName=DNS:kubernetes,DNS:kubernetes.default,DNS:kubernetes.default.svc,DNS:kubernetes.default.svc.cluster.local,DNS:master,IP:10.96.0.1,IP:{{ control_plane_ip }},IP:127.0.0.1')
+      changed_when: false
 
     - name: Clean up temp CSR
-      file:
+      ansible.builtin.file:
         path: /tmp/apiserver.csr
         state: absent
-  when: cert_check.rc != 0
-
-# --- Control-plane kubeconfigs → loopback ---
 - name: Point control-plane kubeconfigs to 127.0.0.1
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ item }}"
-    regexp: '^\s+server:\s+https://.*:6443\s*$'
+    regexp: "^\\s+server:\\s+https://.*:6443\\s*$"
     line: "    server: https://127.0.0.1:6443"
   loop:
     - /etc/kubernetes/kubelet.conf
@@ -104,7 +108,7 @@
 
 # --- Local static kubeconfig keeps remote-access URL ---
 - name: Ensure local kubeconfig points to control_plane_ip (remote access)
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ playbook_dir }}/static/kubeconfigs/{{ cluster_name }}-config"
-    regexp: '^\s+server:\s+https://.*:6443\s*$'
+    regexp: "^\\s+server:\\s+https://.*:6443\\s*$"
     line: "    server: https://{{ control_plane_ip }}:6443"

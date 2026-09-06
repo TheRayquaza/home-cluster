@@ -73,7 +73,7 @@ func checkWinner(board []int) int {
 	lines := [][3]int{
 		{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, // rows
 		{0, 3, 6}, {1, 4, 7}, {2, 5, 8}, // cols
-		{0, 4, 8}, {2, 4, 6},             // diags
+		{0, 4, 8}, {2, 4, 6}, // diags
 	}
 	for _, l := range lines {
 		if board[l[0]] != 0 && board[l[0]] == board[l[1]] && board[l[1]] == board[l[2]] {

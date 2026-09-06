@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - apps/games/frontend/**
-      - .github/workflows/apps/games-frontend/lint.yaml
+      - .github/workflows/lint-games-frontend.yaml
   push:
     branches:
       - main
     paths:
       - apps/games/frontend/**
-      - .github/workflows/apps/games-frontend/lint.yaml
+      - .github/workflows/lint-games-frontend.yaml
 
 jobs:
   typecheck:

@@ -1,10 +1,10 @@
 ---
 - name: restart networkd
-  systemd:
+  ansible.builtin.systemd:
     name: systemd-networkd
     state: restarted
 
 - name: restart resolved
-  systemd:
+  ansible.builtin.systemd:
     name: systemd-resolved
     state: restarted

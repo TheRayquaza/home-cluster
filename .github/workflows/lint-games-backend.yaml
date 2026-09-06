@@ -5,16 +5,16 @@ on:
     paths:
       - apps/games/backend/**
       - .golangci.yml
-      - .github/workflows/apps/games-backend/lint.yaml
-      - .github/workflows/templates/lint-go.yaml
+      - .github/workflows/lint-games-backend.yaml
+      - .github/workflows/reusable-lint-go.yaml
   push:
     branches:
       - main
     paths:
       - apps/games/backend/**
       - .golangci.yml
-      - .github/workflows/apps/games-backend/lint.yaml
-      - .github/workflows/templates/lint-go.yaml
+      - .github/workflows/lint-games-backend.yaml
+      - .github/workflows/reusable-lint-go.yaml
 
 jobs:
   go:

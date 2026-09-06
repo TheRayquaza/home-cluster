@@ -4,25 +4,22 @@ on:
   pull_request:
     paths:
       - apps/pix/**
-      - .github/workflows/apps/pix/lint.yaml
+      - .golangci.yml
+      - .github/workflows/lint-pix.yaml
+      - .github/workflows/reusable-lint-go.yaml
   push:
     branches:
       - main
     paths:
       - apps/pix/**
-      - .github/workflows/apps/pix/lint.yaml
+      - .golangci.yml
+      - .github/workflows/lint-pix.yaml
+      - .github/workflows/reusable-lint-go.yaml
 
 jobs:
-  govet:
-    runs-on: [home-cluster]
+  go:
+    uses: ./.github/workflows/reusable-lint-go.yaml
+    with:
+      working-directory: apps/pix
     permissions:
       contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-          cache: false
-      - name: go vet
-        run: go vet .
-        working-directory: apps/pix

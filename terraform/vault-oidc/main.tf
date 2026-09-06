@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.3.0"
+
   required_providers {
     vault = {
       source  = "hashicorp/vault"
@@ -27,12 +29,12 @@ resource "vault_jwt_auth_backend" "oidc" {
 }
 
 resource "vault_jwt_auth_backend_role" "default" {
-  backend        = vault_jwt_auth_backend.oidc.path
-  role_name      = "default"
-  role_type      = "oidc"
+  backend         = vault_jwt_auth_backend.oidc.path
+  role_name       = "default"
+  role_type       = "oidc"
   bound_audiences = ["vault"]
-  user_claim     = "sub"
-  groups_claim   = "groups"
+  user_claim      = "sub"
+  groups_claim    = "groups"
   allowed_redirect_uris = [
     "https://vault.internal.rayq.app/ui/vault/auth/oidc/oidc/callback",
     "https://vault.internal.rayq.app/oidc/callback",

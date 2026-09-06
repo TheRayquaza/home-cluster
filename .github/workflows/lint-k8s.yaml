@@ -5,16 +5,16 @@ on:
     paths:
       - k8s/**
       - .kube-linter.yaml
-      - .github/workflows/infra/k8s.yaml
-      - .github/workflows/templates/lint-k8s.yaml
+      - .github/workflows/lint-k8s.yaml
+      - .github/workflows/reusable-lint-k8s.yaml
   push:
     branches:
       - main
     paths:
       - k8s/**
       - .kube-linter.yaml
-      - .github/workflows/infra/k8s.yaml
-      - .github/workflows/templates/lint-k8s.yaml
+      - .github/workflows/lint-k8s.yaml
+      - .github/workflows/reusable-lint-k8s.yaml
 
 jobs:
   lint:

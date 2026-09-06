@@ -5,14 +5,14 @@ on:
     paths:
       - terraform/**
       - .tflint.hcl
-      - .github/workflows/infra/lint-terraform.yaml
+      - .github/workflows/lint-terraform.yaml
   push:
     branches:
       - main
     paths:
       - terraform/**
       - .tflint.hcl
-      - .github/workflows/infra/lint-terraform.yaml
+      - .github/workflows/lint-terraform.yaml
 
 jobs:
   fmt:
@@ -21,9 +21,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v3
+
       - name: Check formatting
-        run: terraform fmt -check -recursive terraform/
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/terraform" \
+            -w /terraform \
+            hashicorp/terraform:1.12.2 \
+            fmt -check -recursive terraform/
 
   tflint:
     runs-on: [home-cluster]
