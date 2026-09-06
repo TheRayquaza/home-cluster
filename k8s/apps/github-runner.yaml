@@ -39,8 +39,6 @@ spec:
   - repoURL: ghcr.io/actions/actions-runner-controller-charts
     chart: gha-runner-scale-set-controller
     targetRevision: 0.14.2
-    destination:
-      namespace: actions-runner-system
     helm:
       releaseName: gha-runner-scale-set-controller
       values: |
@@ -70,8 +68,6 @@ spec:
   - repoURL: ghcr.io/actions/actions-runner-controller-charts
     chart: gha-runner-scale-set
     targetRevision: 0.14.2
-    destination:
-      namespace: actions-runner-system
     helm:
       releaseName: home-cluster
       values: |
@@ -150,5 +146,3 @@ spec:
   - repoURL: https://github.com/TheRayquaza/home-cluster.git
     targetRevision: main
     path: k8s/github-runner
-    destination:
-      namespace: github-runner
