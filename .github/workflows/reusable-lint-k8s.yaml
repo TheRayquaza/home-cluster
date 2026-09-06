@@ -56,7 +56,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: stackrox/kube-linter-action@v1
-        with:
-          directory: k8s
-          config: .kube-linter.yaml
+      - name: Run kube-linter
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/lint" \
+            -w /lint \
+            stackrox/kube-linter:latest \
+            lint k8s --config .kube-linter.yaml
