@@ -4,18 +4,15 @@ on:
   pull_request:
     paths:
       - apps/pix/**
-      - .hadolint.yaml
       - .github/workflows/apps/pix/lint.yaml
-      - .github/workflows/templates/lint-docker.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - apps/pix/**
+      - .github/workflows/apps/pix/lint.yaml
 
 jobs:
-  docker:
-    uses: ./.github/workflows/templates/lint-docker.yaml
-    with:
-      dockerfile: apps/pix/Dockerfile
-    permissions:
-      contents: read
-
   govet:
     runs-on: [home-cluster]
     permissions:

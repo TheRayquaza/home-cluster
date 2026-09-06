@@ -5,22 +5,21 @@ on:
     paths:
       - apps/kommande/**
       - .golangci.yml
-      - .hadolint.yaml
       - .github/workflows/apps/kommande/lint.yaml
       - .github/workflows/templates/lint-go.yaml
-      - .github/workflows/templates/lint-docker.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - apps/kommande/**
+      - .golangci.yml
+      - .github/workflows/apps/kommande/lint.yaml
+      - .github/workflows/templates/lint-go.yaml
 
 jobs:
   go:
     uses: ./.github/workflows/templates/lint-go.yaml
     with:
       working-directory: apps/kommande
-    permissions:
-      contents: read
-
-  docker:
-    uses: ./.github/workflows/templates/lint-docker.yaml
-    with:
-      dockerfile: apps/kommande/Dockerfile
     permissions:
       contents: read

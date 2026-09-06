@@ -5,6 +5,12 @@ on:
     paths:
       - ansible/**
       - .github/workflows/infra/lint-ansible.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - ansible/**
+      - .github/workflows/infra/lint-ansible.yaml
 
 jobs:
   ansible-lint:

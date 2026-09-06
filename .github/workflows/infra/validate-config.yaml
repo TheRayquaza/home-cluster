@@ -1,0 +1,80 @@
+name: Lint - Config Validation
+
+on:
+  pull_request:
+    paths:
+      - renovate.json
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - .github/workflows/infra/validate-config.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - renovate.json
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - .github/workflows/infra/validate-config.yaml
+
+jobs:
+  renovate-config:
+    runs-on: [home-cluster]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Renovate config
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            ghcr.io/renovatebot/renovate:44 \
+            renovate-config-validator
+
+  yaml-json:
+    runs-on: [home-cluster]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all YAML and JSON files parse
+        run: |
+          docker run --rm -i \
+            -v "$GITHUB_WORKSPACE:/repo" \
+            -w /repo \
+            python:3.12-alpine \
+            sh -c 'pip install --no-cache-dir --quiet pyyaml && python3 -' <<'PY'
+          import glob
+          import json
+          import os
+          import sys
+
+          import yaml
+
+          files = set()
+          for root, dirs, names in os.walk(".", topdown=True):
+              dirs[:] = [d for d in dirs if d != ".git"]
+              for name in names:
+                  if name.endswith((".yaml", ".yml", ".json")):
+                      files.add(os.path.join(root, name))
+
+          errors = 0
+          for f in sorted(files):
+              try:
+                  if f.endswith(".json"):
+                      json.load(open(f))
+                  else:
+                      for _document in yaml.safe_load_all(open(f)):
+                          pass
+              except Exception as e:
+                  print(f"::error file={f}::{type(e).__name__}: {e}")
+                  errors += 1
+
+          if errors:
+              sys.exit(1)
+          print(f"Validated {len(files)} YAML/JSON files")
+          PY
